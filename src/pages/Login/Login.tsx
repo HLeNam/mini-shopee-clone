@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import Input from '~/components/Input';
 
 const LoginSchema = z.object({
   email: z
@@ -46,25 +47,24 @@ const Login = () => {
           <div className='lg:col-span-2 lg:col-start-4'>
             <form className='rounded bg-white p-10 shadow-sm' onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className='text-2xl'>Đăng nhập</div>
-              <div className='mt-8'>
-                <input
-                  type='email'
-                  className='w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm'
-                  placeholder='Email'
-                  {...register('email')}
-                />
-                <div className='mt-1 min-h-[1.25rem] text-sm text-red-600'>{errors.email?.message}</div>
-              </div>
-              <div className='mt-2'>
-                <input
-                  type='password'
-                  className='w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm'
-                  placeholder='Password'
-                  autoComplete='current-password'
-                  {...register('password')}
-                />
-                <div className='mt-1 min-h-[1.25rem] text-sm text-red-600'>{errors.password?.message}</div>
-              </div>
+              <Input<LoginSchemaType>
+                type='email'
+                errorMessage={errors.email?.message}
+                placeholder='Email'
+                className='mt-8'
+                name='email'
+                register={register}
+              />
+              <Input<LoginSchemaType>
+                type='password'
+                errorMessage={errors.password?.message}
+                placeholder='Password'
+                autoComplete='current-password'
+                className='mt-2'
+                name='password'
+                register={register}
+              />
+
               <div className='mt-3'>
                 <button
                   type='submit'
