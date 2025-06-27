@@ -1,42 +1,100 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
+
+const RegisterSchema = z
+  .object({
+    email: z
+      .string()
+      .nonempty('Email là bắt buộc')
+      .min(5, 'Email phải có ít nhất 5 ký tự')
+      .max(160, 'Email không được quá 160 ký tự')
+      .email('Email không đúng định dạng'),
+    password: z
+      .string()
+      .nonempty('Mật khẩu là bắt buộc')
+      .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+      .max(160, 'Mật khẩu không được quá 160 ký tự'),
+    confirm_password: z
+      .string()
+      .nonempty('Xác nhận mật khẩu là bắt buộc')
+      .min(6, 'Mật khẩu xác nhận phải có ít nhất 6 ký tự')
+      .max(160, 'Mật khẩu xác nhận không được quá 160 ký tự')
+  })
+  .refine((data) => data.password === data.confirm_password, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirm_password']
+  });
+
+type RegisterSchemaType = z.infer<typeof RegisterSchema>;
 
 const Register = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, errors }
+  } = useForm<RegisterSchemaType>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirm_password: ''
+    }
+  });
+
+  const onSubmit = async (data: RegisterSchemaType) => {
+    // Handle registration logic here
+    console.log('Register data:', data);
+    // Simulate an API call
+    return new Promise((resolve) => setTimeout(resolve, 1000));
+  };
+
   return (
     <div className='bg-orange'>
       <div className='Container'>
         <div className='grid grid-cols-1 py-12 lg:grid-cols-5 lg:py-32 lg:pr-10'>
           <div className='lg:col-span-2 lg:col-start-4'>
-            <form className='rounded bg-white p-10 shadow-sm'>
+            <form className='rounded bg-white p-10 shadow-sm' onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className='text-2xl'>Đăng ký</div>
               <div className='mt-8'>
                 <input
                   type='email'
-                  name='email'
                   className='w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm'
                   placeholder='Email'
+                  autoComplete='email'
+                  {...register('email')}
                 />
-                <div className='mt-1 min-h-[1rem] text-sm text-red-600 select-none'></div>
+                <div className='mt-1 min-h-[1.25rem] text-sm text-red-600 select-none'>{errors.email?.message}</div>
               </div>
-              <div className='mt-3'>
+              <div className='mt-2'>
                 <input
                   type='password'
-                  name='password'
                   className='w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm'
                   placeholder='Password'
+                  autoComplete='new-password'
+                  {...register('password')}
                 />
-                <div className='mt-1 min-h-[1rem] text-sm text-red-600 select-none'></div>
+                <div className='mt-1 min-h-[1.25rem] text-sm text-red-600 select-none'>{errors.password?.message}</div>
               </div>
-              <div className='mt-3'>
+              <div className='mt-2'>
                 <input
                   type='password'
-                  name='confirm_password'
                   className='w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm'
                   placeholder='Confirm Password'
+                  autoComplete='new-password'
+                  {...register('confirm_password')}
                 />
-                <div className='mt-1 min-h-[1rem] text-sm text-red-600 select-none'></div>
+                <div className='mt-1 min-h-[1.25rem] text-sm text-red-600 select-none'>
+                  {errors.confirm_password?.message}
+                </div>
               </div>
               <div className='mt-3'>
-                <button className='bg-orange hover:bg-orange/90 w-full cursor-pointer px-2 py-4 text-center text-sm text-white uppercase'>
+                <button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='bg-orange hover:bg-orange/90 w-full cursor-pointer px-2 py-4 text-center text-sm text-white uppercase'
+                >
                   Đăng ký
                 </button>
               </div>
