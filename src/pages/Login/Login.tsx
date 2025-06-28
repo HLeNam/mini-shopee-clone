@@ -1,8 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import { loginAccount } from '~/apis/auth.api';
 import Input from '~/components/Input';
+import type { ResponseApi } from '~/types/utils.type';
+import { isAxiosUnprocessableEntityError } from '~/utils/utils';
 
 const LoginSchema = z.object({
   email: z
@@ -24,6 +28,7 @@ const Login = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { isSubmitting, errors }
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
@@ -33,11 +38,35 @@ const Login = () => {
     }
   });
 
+  const loginAccountMutation = useMutation({
+    mutationFn: (body: LoginSchemaType) => {
+      return loginAccount(body);
+    }
+  });
+
   const onSubmit = async (data: LoginSchemaType) => {
     // Handle login logic here
     console.log('Login data:', data);
-    // Simulate an API call
-    return new Promise((resolve) => setTimeout(resolve, 1000));
+    loginAccountMutation.mutate(data, {
+      onSuccess: (data) => {
+        console.log('Login successful:', data);
+        // Handle successful login, e.g., redirect or show a success message
+      },
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ResponseApi<LoginSchemaType>>(error)) {
+          const errorsResponse = error.response?.data.data;
+          Object.entries(errorsResponse || {}).forEach(([key, value]) => {
+            setError(key as keyof LoginSchemaType, {
+              message: value as string,
+              type: 'Server'
+            });
+          });
+          return;
+        }
+        // Handle other errors (e.g., network errors, server errors)
+        console.error('>>> Registration error:', error);
+      }
+    });
   };
 
   return (

@@ -1,8 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import { registerAccount } from '~/apis/auth.api';
 import Input from '~/components/Input';
+import type { ResponseApi } from '~/types/utils.type';
+import { isAxiosUnprocessableEntityError } from '~/utils/utils';
 
 const RegisterSchema = z
   .object({
@@ -34,6 +39,7 @@ const Register = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { isSubmitting, errors }
   } = useForm<RegisterSchemaType>({
     resolver: zodResolver(RegisterSchema),
@@ -44,11 +50,39 @@ const Register = () => {
     }
   });
 
+  const registerAccountMutation = useMutation({
+    mutationFn: (body: Omit<RegisterSchemaType, 'confirm_password'>) => {
+      return registerAccount(body);
+    }
+  });
+
   const onSubmit = async (data: RegisterSchemaType) => {
     // Handle registration logic here
     console.log('Register data:', data);
-    // Simulate an API call
-    return new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const body = _.omit(data, 'confirm_password');
+      const response = await registerAccountMutation.mutateAsync(body);
+
+      const dataResponse = response.data;
+
+      if (+response.status === 200 && dataResponse) {
+        console.log('>>> Registration successful:', dataResponse);
+        return;
+      }
+    } catch (error) {
+      if (isAxiosUnprocessableEntityError<ResponseApi<Omit<RegisterSchemaType, 'confirm_password'>>>(error)) {
+        const errorsResponse = error.response?.data.data;
+        Object.entries(errorsResponse || {}).forEach(([key, value]) => {
+          setError(key as keyof RegisterSchemaType, {
+            message: value as string,
+            type: 'Server'
+          });
+        });
+        return;
+      }
+      // Handle other errors (e.g., network errors, server errors)
+      console.error('>>> Registration error:', error);
+    }
   };
 
   return (
@@ -68,7 +102,7 @@ const Register = () => {
               />
               <Input<RegisterSchemaType>
                 type='password'
-                errorMessage={errors.email?.message}
+                errorMessage={errors.password?.message}
                 placeholder='Password'
                 autoComplete='new-password'
                 className='mt-2'

@@ -1,10 +1,11 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import eslintPluginPrettier from 'eslint-plugin-prettier'
-import { globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import eslintPluginPrettier from 'eslint-plugin-prettier';
+import pluginQuery from '@tanstack/eslint-plugin-query';
+import { globalIgnores } from 'eslint/config';
 
 export default tseslint.config([
   globalIgnores(['dist', 'vite.config.ts']),
@@ -14,14 +15,16 @@ export default tseslint.config([
       js.configs.recommended,
       tseslint.configs.recommended,
       reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite
+      reactRefresh.configs.vite,
+      ...pluginQuery.configs['flat/recommended']
     ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser
     },
     plugins: {
-      prettier: eslintPluginPrettier
+      prettier: eslintPluginPrettier,
+      '@tanstack/query': pluginQuery
     },
     rules: {
       'prettier/prettier': [
@@ -40,4 +43,4 @@ export default tseslint.config([
       ]
     }
   }
-])
+]);
