@@ -1,10 +1,14 @@
-import type { AppRouteObject } from '~/types/route-types';
-
-import publicRoutes from './public.routes';
 import { createBrowserRouter } from 'react-router-dom';
+
+import type { AppRouteObject } from '~/types/route.type';
+import guestRoutes from '~/routes/guest.routes';
+import privateRoutes from '~/routes/private.routes';
+import publicRoutes from '~/routes/public.routes';
 
 const routes: AppRouteObject[] = [
   ...publicRoutes,
+  ...guestRoutes,
+  ...privateRoutes,
   {
     path: '*',
     Component: () => <div>404 Not Found</div>,

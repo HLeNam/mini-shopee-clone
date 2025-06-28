@@ -1,12 +1,8 @@
 import { lazy } from 'react';
 import MainLayout from '~/layouts/MainLayout';
-import type { AppRouteObject } from '~/types/route-types';
+import type { AppRouteObject } from '~/types/route.type';
 
 const ProductList = lazy(() => import('~/pages/ProductList'));
-
-const RegisterLayout = lazy(() => import('~/layouts/RegisterLayout'));
-const Login = lazy(() => import('~/pages/Login'));
-const Register = lazy(() => import('~/pages/Register'));
 
 const publicRoutes: AppRouteObject[] = [
   {
@@ -15,21 +11,8 @@ const publicRoutes: AppRouteObject[] = [
     children: [
       {
         path: '/',
+        index: true,
         Component: ProductList
-      }
-    ]
-  },
-  {
-    path: '/',
-    Component: RegisterLayout,
-    children: [
-      {
-        path: '/login',
-        Component: Login
-      },
-      {
-        path: 'register',
-        Component: Register
       }
     ]
   }
