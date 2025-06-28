@@ -13,11 +13,16 @@ body {
 /* Custom color */
 @theme {
   --color-orange: #ee4d2d;
+  --color-orange-gradient: linear-gradient(-180deg, #f53d2d, #f63);
 }
 
 /* Custom tailwind styles */
 @layer base {
   .Container {
     @apply mx-auto max-w-7xl px-4;
+  }
+
+  .bg-orange-gradient {
+    background: var(--color-orange-gradient);
   }
 }
