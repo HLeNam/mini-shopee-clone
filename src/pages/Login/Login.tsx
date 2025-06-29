@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { loginAccount } from '~/apis/auth.api';
+import authApi from '~/apis/auth.api';
 import Button from '~/components/Button';
 import Input from '~/components/Input';
 import { useAppContext } from '~/contexts';
@@ -45,7 +45,7 @@ const Login = () => {
 
   const loginAccountMutation = useMutation({
     mutationFn: (body: LoginSchemaType) => {
-      return loginAccount(body);
+      return authApi.loginAccount(body);
     }
   });
 

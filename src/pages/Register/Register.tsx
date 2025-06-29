@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { registerAccount } from '~/apis/auth.api';
+import authApi from '~/apis/auth.api';
 import Button from '~/components/Button';
 import Input from '~/components/Input';
 import { useAppContext } from '~/contexts';
@@ -57,7 +57,7 @@ const Register = () => {
 
   const registerAccountMutation = useMutation({
     mutationFn: (body: Omit<RegisterSchemaType, 'confirm_password'>) => {
-      return registerAccount(body);
+      return authApi.registerAccount(body);
     }
   });
 

@@ -9,7 +9,7 @@ const Button = (props: ButtonProps) => {
 
   const buttonClass = disabled ? className + ' cursor-not-allowed' : className + ' cursor-pointer';
 
-  console.log('Button class:', buttonClass);
+  // console.log('Button class:', buttonClass);
 
   return (
     <button className={buttonClass} disabled={disabled} {...rest}>
