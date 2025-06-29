@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAppContext } from '~/contexts';
 
 /**
  * HOC cho page chỉ dành cho guest (chưa đăng nhập).
@@ -10,7 +11,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 function withGuestGuard<P>(Component: React.ComponentType<P>, redirectTo: string = '/') {
   const GuardedComponent: React.FC<React.PropsWithChildren<P>> = (props: React.PropsWithChildren<P>) => {
     const location = useLocation();
-    const isAuthenticated = false;
+    const { isAuthenticated } = useAppContext();
 
     if (isAuthenticated) {
       return <Navigate to={redirectTo} state={{ from: location }} replace />;

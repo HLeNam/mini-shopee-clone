@@ -2,10 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { registerAccount } from '~/apis/auth.api';
+import Button from '~/components/Button';
 import Input from '~/components/Input';
+import { useAppContext } from '~/contexts';
 import type { ResponseApi } from '~/types/utils.type';
 import { isAxiosUnprocessableEntityError } from '~/utils/utils';
 
@@ -36,6 +38,9 @@ const RegisterSchema = z
 type RegisterSchemaType = z.infer<typeof RegisterSchema>;
 
 const Register = () => {
+  const { setIsAuthenticated, setProfile } = useAppContext();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -67,6 +72,14 @@ const Register = () => {
 
       if (+response.status === 200 && dataResponse) {
         console.log('>>> Registration successful:', dataResponse);
+        const accessToken = dataResponse.data?.access_token;
+        const profile = dataResponse.data?.user;
+        if (accessToken && profile) {
+          setIsAuthenticated(true); // Update authentication state
+          setProfile(profile); // Set user profile
+
+          navigate('/'); // Redirect to home page after successful login
+        }
         return;
       }
     } catch (error) {
@@ -119,13 +132,14 @@ const Register = () => {
                 register={register}
               />
               <div className='mt-3'>
-                <button
+                <Button
                   type='submit'
-                  disabled={isSubmitting}
-                  className='bg-orange hover:bg-orange/90 w-full cursor-pointer px-2 py-4 text-center text-sm text-white uppercase'
+                  disabled={isSubmitting || registerAccountMutation.isPending}
+                  isLoading={registerAccountMutation.isPending}
+                  className='bg-orange hover:bg-orange/90 flex w-full items-center justify-center px-2 py-4 text-center text-sm text-white uppercase'
                 >
                   Đăng ký
-                </button>
+                </Button>
               </div>
               <div className='mt-8 text-center'>
                 <div className='flex items-center justify-center'>

@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import withAuthGuard from '~/components/AuthGuard';
+import PATH from '~/constants/path';
 import MainLayout from '~/layouts/MainLayout';
 import type { AppRouteObject } from '~/types/route.type';
 
@@ -11,7 +12,7 @@ const privateRoutes: AppRouteObject[] = [
     Component: withAuthGuard(MainLayout),
     children: [
       {
-        path: '/profile',
+        path: PATH.profile,
         Component: Profile
       }
     ]

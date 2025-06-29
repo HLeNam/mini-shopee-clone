@@ -1,8 +1,26 @@
+import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { logoutAccount } from '~/apis/auth.api';
 
 import Popover from '~/components/Popover';
+import PATH from '~/constants/path';
+import { useAppContext } from '~/contexts';
 
 const Header = () => {
+  const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useAppContext();
+
+  const logoutMutation = useMutation({
+    mutationFn: () => logoutAccount(),
+    onSuccess: () => {
+      setIsAuthenticated(false);
+      setProfile(null);
+    }
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
   return (
     <div className='bg-orange-gradient pt-2 pb-5 text-sm !font-light text-white shadow-sm'>
       <div className='Container'>
@@ -44,31 +62,47 @@ const Header = () => {
               <path strokeLinecap='round' strokeLinejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' />
             </svg>
           </Popover>
-          <Popover
-            renderPopover={
-              <div className='relative rounded-sm border border-gray-200 bg-white shadow-md'>
-                <div className='flex flex-col justify-start px-4 py-2'>
-                  <Link to='/profile' className='w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
-                    Tài khoản của tôi
-                  </Link>
-                  <Link to='/cart' className='mt-2 w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
-                    Đơn mua
-                  </Link>
-                  <button className='mt-2 w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>Đăng xuất</button>
-                </div>
-              </div>
-            }
-            className='ml-6 flex cursor-pointer items-center py-1 hover:text-gray-300'
-          >
-            <div className='mr-2 h-6 w-6 flex-shrink-0'>
-              <img
-                src='https://images.unsplash.com/photo-1548637724-cbc39e0c8d3b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YmVhdXRpZnVsJTIwd29tYW58ZW58MHx8MHx8fDA%3D'
-                alt='avatar'
-                className='h-full w-full rounded-full object-cover'
-              />
+          {!isAuthenticated ? (
+            <div className='flex items-center'>
+              <Link to={`/${PATH.register}`} className='border-r border-gray-300 px-3 hover:text-gray-300'>
+                Đăng ký
+              </Link>
+              <Link to={`/${PATH.login}`} className='-mr-3 px-3 hover:text-gray-300'>
+                Đăng nhập
+              </Link>
             </div>
-            <div>yorickur</div>
-          </Popover>
+          ) : (
+            <Popover
+              renderPopover={
+                <div className='relative rounded-sm border border-gray-200 bg-white shadow-md'>
+                  <div className='flex flex-col justify-start px-4 py-2'>
+                    <Link to={`/${PATH.profile}`} className='w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
+                      Tài khoản của tôi
+                    </Link>
+                    <Link to='/cart' className='mt-2 w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
+                      Đơn mua
+                    </Link>
+                    <button
+                      className='mt-2 w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'
+                      onClick={() => handleLogout()}
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                </div>
+              }
+              className='ml-6 flex cursor-pointer items-center py-1 hover:text-gray-300'
+            >
+              <div className='mr-2 h-6 w-6 flex-shrink-0'>
+                <img
+                  src='https://images.unsplash.com/photo-1548637724-cbc39e0c8d3b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YmVhdXRpZnVsJTIwd29tYW58ZW58MHx8MHx8fDA%3D'
+                  alt='avatar'
+                  className='h-full w-full rounded-full object-cover'
+                />
+              </div>
+              <div>{profile?.email}</div>
+            </Popover>
+          )}
         </div>
         <div className='mt-4 grid grid-cols-12 items-end gap-4'>
           <Link to='/' className='col-span-2'>
@@ -107,6 +141,11 @@ const Header = () => {
             <Popover
               mainAxis={10}
               placement='bottom-end'
+              animateOptions={{
+                initial: { opacity: 0, scale: 0, transformOrigin: 'top right' },
+                animate: { opacity: 1, scale: 1, transformOrigin: 'top right' },
+                exit: { opacity: 0, scale: 0, transformOrigin: 'top right' }
+              }}
               renderPopover={
                 <div className='relative max-w-[400px] rounded-sm border border-gray-200 bg-white text-sm shadow-md'>
                   <div className='p-2'>

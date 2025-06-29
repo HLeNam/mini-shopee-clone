@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import withGuestGuard from '~/components/GuestGuard/WithGuestGuard';
+import PATH from '~/constants/path';
 import type { AppRouteObject } from '~/types/route.type';
 
 const RegisterLayout = lazy(() => import('~/layouts/RegisterLayout'));
@@ -12,11 +13,11 @@ const guestRoutes: AppRouteObject[] = [
     Component: withGuestGuard(RegisterLayout),
     children: [
       {
-        path: '/login',
+        path: PATH.login,
         Component: Login
       },
       {
-        path: 'register',
+        path: PATH.register,
         Component: Register
       }
     ]

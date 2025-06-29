@@ -7,6 +7,7 @@ import { RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
 import router from '~/routes';
+import { AppProvider } from '~/contexts';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
-      <RouterProvider router={router} />
+      <AppProvider>
+        <RouterProvider router={router} />
+      </AppProvider>
       <ToastContainer />
     </QueryClientProvider>
   </StrictMode>
