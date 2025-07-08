@@ -89,8 +89,6 @@ const Pagination = ({ queryConfig, pageSize }: PaginationProps) => {
     });
   };
 
-  console.log('>>> pageSize', pageSize);
-
   return (
     <div className='mt-6 flex flex-wrap justify-center'>
       <Link

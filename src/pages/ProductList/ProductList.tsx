@@ -53,7 +53,7 @@ const ProductList = () => {
             <AsideFilter />
           </div>
           <div className='col-span-9'>
-            <SortProductList />
+            <SortProductList queryConfig={queryConfig} pageSize={pagination.page_size} />
             <div className='mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
               {products.length > 0 &&
                 products.map((product) => (

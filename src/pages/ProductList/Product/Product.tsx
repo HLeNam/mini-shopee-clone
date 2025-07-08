@@ -22,12 +22,12 @@ const Product = ({ product }: ProductProps) => {
           <div className='line-clamp-2 min-h-[2rem] text-xs'>{product.name}</div>
           <div className='mt-3 flex items-center'>
             <div className='flex max-w-[50%] items-baseline truncate text-gray-500 line-through'>
-              <span className='mr-px text-xs font-medium'>₫</span>
+              <span className='text-xs'>₫</span>
               <span className='truncate text-sm'>{formatCurrency(product.price_before_discount)}</span>
             </div>
-            <div className='text-orange ml-2 flex items-center truncate'>
-              <span className='mr-px text-xs font-medium'>₫</span>
-              <span className='truncate'>{formatCurrency(product.price)}</span>
+            <div className='text-orange ml-1 flex items-center truncate'>
+              <span className='text-xs'>₫</span>
+              <span className='truncate text-sm'>{formatCurrency(product.price)}</span>
             </div>
           </div>
           <div className='mt-3 flex items-center justify-start'>
