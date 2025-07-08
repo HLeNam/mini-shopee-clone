@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import authApi from '~/apis/auth.api';
 import Button from '~/components/Button';
-import Input from '~/components/Input';
+import { Input } from '~/components/Input';
 import { useAppContext } from '~/contexts';
 import type { ResponseApi } from '~/types/utils.type';
 import { isAxiosUnprocessableEntityError } from '~/utils/utils';

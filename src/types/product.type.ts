@@ -1,3 +1,5 @@
+import type { Category } from '~/types/category.type';
+
 export interface Product {
   _id: string;
   images: string[];
@@ -9,10 +11,7 @@ export interface Product {
   view: number;
   name: string;
   description: string;
-  category: {
-    _id: string;
-    name: string;
-  };
+  category: Category;
   image: string;
   createdAt: string;
   updatedAt: string;
@@ -37,4 +36,5 @@ export interface ProductListConfig {
   price_min?: number | string; // minimum price
   price_max?: number | string; // maximum price
   name?: string; // search term
+  category?: string; // category id to filter products
 }

@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { isUndefined, omitBy } from 'lodash';
+import categoryApi from '~/apis/category.api';
 import productApi from '~/apis/product.api';
 import Pagination from '~/components/Pagination';
 import useQueryParams from '~/hooks/useQueryParams';
@@ -31,26 +32,34 @@ const ProductList = () => {
       rating_filter: queryParams.rating_filter,
       price_min: queryParams.price_min,
       price_max: queryParams.price_max,
-      name: queryParams.name
+      name: queryParams.name,
+      category: queryParams.category
     },
     isUndefined
   );
 
-  const { data } = useQuery({
+  const { data: productsData } = useQuery({
     queryKey: ['products', queryConfig],
     queryFn: () => productApi.getProducts(queryConfig as ProductListConfig),
     placeholderData: keepPreviousData
   });
 
-  const products = data ? data.data.data.products : [];
-  const pagination = data ? data.data.data.pagination : INITIAL_PAGINATION;
+  const products = productsData ? productsData.data.data.products : [];
+  const pagination = productsData ? productsData.data.data.pagination : INITIAL_PAGINATION;
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoryApi.getCategories()
+  });
+
+  const categories = categoriesData ? categoriesData.data.data : [];
 
   return (
     <div className='bg-gray-200 py-6'>
       <div className='Container'>
         <div className='grid grid-cols-12 gap-6'>
           <div className='col-span-3'>
-            <AsideFilter />
+            <AsideFilter queryConfig={queryConfig} categories={categories} />
           </div>
           <div className='col-span-9'>
             <SortProductList queryConfig={queryConfig} pageSize={pagination.page_size} />
