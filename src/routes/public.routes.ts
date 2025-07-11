@@ -5,6 +5,8 @@ import type { AppRouteObject } from '~/types/route.type';
 
 const ProductList = lazy(() => import('~/pages/ProductList'));
 
+const ProductDetail = lazy(() => import('~/pages/ProductDetail'));
+
 const publicRoutes: AppRouteObject[] = [
   {
     path: '/',
@@ -14,6 +16,10 @@ const publicRoutes: AppRouteObject[] = [
         path: PATH.home,
         index: true,
         Component: ProductList
+      },
+      {
+        path: PATH.product.detail,
+        Component: ProductDetail
       }
     ]
   }

@@ -7,8 +7,8 @@ import { z } from 'zod';
 import Button from '~/components/Button';
 import { InputNumber } from '~/components/Input';
 import PATH from '~/constants/path';
+import RatingStarts from '~/pages/ProductList/components/RatingStarts';
 import type { QueryConfig } from '~/pages/ProductList/ProductList';
-import RatingStarts from '~/pages/ProductList/RatingStarts';
 import type { Category } from '~/types/category.type';
 
 interface AsideFilterProps {

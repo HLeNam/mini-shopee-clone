@@ -1,3 +1,3 @@
-import RatingStarts from '~/pages/ProductList/RatingStarts/RatingStarts';
+import RatingStarts from './RatingStarts';
 
 export default RatingStarts;

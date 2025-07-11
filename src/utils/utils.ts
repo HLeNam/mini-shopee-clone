@@ -22,3 +22,15 @@ export function formatNumberToSocialStyle(number: number) {
     .replace('.', ',')
     .toLowerCase();
 }
+
+export function rateSale(original: number, sale: number) {
+  if (original <= 0 || sale < 0) return 0;
+  return Math.round(((original - sale) / original) * 100);
+}
+
+export function mergeUrlPaths(...paths: string[]) {
+  return paths
+    .map((path) => path.replace(/(^\/+|\/+$)/g, '')) // Remove leading and trailing slashes
+    .filter(Boolean) // Filter out empty strings
+    .join('/'); // Join with a single slash
+}

@@ -1,3 +1,3 @@
-import Product from '~/pages/ProductList/Product/Product';
+import Product from './Product';
 
 export default Product;

@@ -1,4 +1,14 @@
-const ProductRating = ({ rating }: { rating: number }) => {
+interface ProductRatingProps {
+  rating: number;
+  activeClassName?: string;
+  inactiveClassName?: string;
+}
+
+const ProductRating = ({
+  rating,
+  activeClassName = 'h-3 w-3 fill-yellow-300 stroke-yellow-300 text-yellow-300',
+  inactiveClassName = 'h-3 w-3 fill-current text-gray-300'
+}: ProductRatingProps) => {
   const handleWidth = (order: number) => {
     if (order <= rating) {
       return '100%';
@@ -28,7 +38,8 @@ const ProductRating = ({ rating }: { rating: number }) => {
                 viewBox='0 0 24 24'
                 strokeWidth={1.5}
                 stroke='currentColor'
-                className='h-3 w-3 fill-yellow-300 stroke-yellow-300 text-yellow-300'
+                // className='h-3 w-3 fill-yellow-300 stroke-yellow-300 text-yellow-300'
+                className={`${activeClassName}`}
               >
                 <path
                   strokeLinecap='round'
@@ -43,7 +54,8 @@ const ProductRating = ({ rating }: { rating: number }) => {
               viewBox='0 0 24 24'
               strokeWidth={1.5}
               stroke='currentColor'
-              className='h-3 w-3 fill-current text-gray-300'
+              // className='h-3 w-3 fill-current text-gray-300'
+              className={`${inactiveClassName}`}
             >
               <path
                 strokeLinecap='round'
@@ -57,4 +69,5 @@ const ProductRating = ({ rating }: { rating: number }) => {
     </div>
   );
 };
+
 export default ProductRating;

@@ -1,3 +1,3 @@
-import SortProductList from '~/pages/ProductList/SortProductList/SortProductList';
+import SortProductList from './SortProductList';
 
 export default SortProductList;
