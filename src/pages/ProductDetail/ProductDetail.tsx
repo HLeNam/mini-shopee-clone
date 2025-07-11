@@ -6,6 +6,7 @@ import productApi from '~/apis/product.api';
 import { InputNumber } from '~/components/Input';
 import ProductRating from '~/components/ProductRating';
 import { formatCurrency, formatNumberToSocialStyle, rateSale } from '~/utils/utils';
+import { useEffect, useMemo, useState } from 'react';
 
 interface Params extends Record<string, string> {
   id: string;
@@ -19,25 +20,61 @@ const ProductDetail = () => {
     queryFn: () => productApi.getProductDetail(id as string)
   });
 
+  const [currentIndexImage, setCurrentIndexImage] = useState([0, 5]);
+
+  const [activeImage, setActiveImage] = useState('');
+
   const product = productDetailData?.data.data;
+
+  const currentImages = useMemo(() => {
+    return product?.images.slice(...currentIndexImage) || [];
+  }, [product, currentIndexImage]);
+
+  useEffect(() => {
+    if (product && product.images.length > 0) {
+      setActiveImage(product.images[0]);
+    }
+  }, [product]);
+
+  const chooseActive = (image: string) => {
+    setActiveImage(image);
+  };
+
+  const handleNextImages = () => {
+    if (!product?.images.length) return;
+
+    if (currentIndexImage[1] < product?.images.length) {
+      setCurrentIndexImage((prev) => [prev[0] + 1, prev[1] + 1]);
+    }
+  };
+
+  const handlePrevImages = () => {
+    if (currentIndexImage[0] > 0) {
+      setCurrentIndexImage((prev) => [prev[0] - 1, prev[1] - 1]);
+    }
+  };
 
   if (!product) return null; // Handle case where product is not found
 
   return (
     <div className='bg-gray-200 py-6'>
-      <div className='bg-white p-4 shadow'>
-        <div className='Container'>
+      {/* Product Image And Title*/}
+      <div className='Container'>
+        <div className='bg-white p-4 shadow'>
           <div className='grid grid-cols-12 gap-9'>
             <div className='col-span-5'>
               <div className='relative w-full pt-[100%] shadow'>
                 <img
                   className='absolute top-0 left-0 h-full w-full bg-white object-contain'
-                  src={product.image}
+                  src={activeImage}
                   alt={product.name}
                 />
               </div>
               <div className='relative mt-4 grid grid-cols-5 gap-1'>
-                <button className='absolute top-1/2 left-0 z-10 h-9 w-5 -translate-y-1/2 bg-black/20 text-white'>
+                <button
+                  onClick={() => handlePrevImages()}
+                  className='absolute top-1/2 left-0 z-10 h-9 w-5 -translate-y-1/2 bg-black/20 text-white'
+                >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -49,20 +86,28 @@ const ProductDetail = () => {
                     <path strokeLinecap='round' strokeLinejoin='round' d='M15.75 19.5 8.25 12l7.5-7.5' />
                   </svg>
                 </button>
-                {product.images.slice(0, 5).map((image, index) => {
-                  const isActive = index === 0; // Highlight the first image
+                {currentImages.map((image, index) => {
+                  const isActive = image === activeImage;
                   return (
-                    <div key={image + index} className='relative w-full pt-[100%]'>
+                    <div
+                      key={activeImage + index}
+                      className='relative w-full pt-[100%]'
+                      onMouseEnter={() => chooseActive(image)}
+                      onClick={() => chooseActive(image)}
+                    >
                       <img
                         className='absolute top-0 left-0 h-full w-full cursor-pointer bg-white object-contain'
                         src={image}
-                        alt={`Product image ${index + 1}`}
+                        alt={`${product.name} - Image ${index + 1}`}
                       />
                       {isActive && <div className='border-orange absolute inset-0 border-2'></div>}
                     </div>
                   );
                 })}
-                <button className='absolute top-1/2 right-0 z-10 h-9 w-5 -translate-y-1/2 bg-black/20 text-white'>
+                <button
+                  onClick={() => handleNextImages()}
+                  className='absolute top-1/2 right-0 z-10 h-9 w-5 -translate-y-1/2 bg-black/20 text-white'
+                >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -168,8 +213,9 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-      <div className='mt-8 bg-white p-4 shadow'>
-        <div className='Container'>
+      {/* Product description */}
+      <div className='Container'>
+        <div className='mt-8 bg-white p-4 shadow'>
           <div className='rounded bg-gray-50 p-4 text-lg text-slate-700 capitalize'>Mô tả sản phẩm</div>
           <div className='mx-4 mt-12 mb-4 text-sm leading-loose'>
             {/* 
