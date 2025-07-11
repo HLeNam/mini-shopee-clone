@@ -21,7 +21,8 @@ const ProductList = () => {
   const { data: productsData } = useQuery({
     queryKey: ['products', queryConfig],
     queryFn: () => productApi.getProducts(queryConfig as ProductListConfig),
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 3 * 60 * 1000 // 3 minutes
   });
 
   const products = productsData ? productsData.data.data.products : [];

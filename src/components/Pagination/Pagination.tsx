@@ -1,7 +1,8 @@
 import classNames from 'classnames';
 import { Link, createSearchParams } from 'react-router-dom';
+
 import PATH from '~/constants/path';
-import type { QueryConfig } from '~/pages/ProductList/ProductList';
+import type { QueryConfig } from '~/hooks/useQueryConfig';
 
 interface PaginationProps {
   queryConfig: QueryConfig;

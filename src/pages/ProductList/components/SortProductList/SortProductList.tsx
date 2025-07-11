@@ -1,9 +1,10 @@
-import classNames from 'classnames';
 import { omit } from 'lodash';
+import classNames from 'classnames';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
+
 import PATH from '~/constants/path';
 import { SORT_BY, SORT_ORDER } from '~/constants/product';
-import type { QueryConfig } from '~/pages/ProductList/ProductList';
+import type { QueryConfig } from '~/hooks/useQueryConfig';
 import type { ProductListConfig } from '~/types/product.type';
 
 interface SortProductListProps {

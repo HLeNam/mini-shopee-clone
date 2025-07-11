@@ -1,11 +1,15 @@
 import DOMPurify from 'dompurify';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import productApi from '~/apis/product.api';
 import { InputNumber } from '~/components/Input';
+import Pagination from '~/components/Pagination';
 import ProductRating from '~/components/ProductRating';
+import { INITIAL_PAGINATION } from '~/constants/product';
+import Product from '~/pages/ProductList/components/Product';
+import type { ProductListConfig } from '~/types/product.type';
 import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '~/utils/utils';
 
 interface Params extends Record<string, string> {
@@ -32,6 +36,22 @@ const ProductDetail = () => {
   const currentImages = useMemo(() => {
     return product?.images.slice(...currentIndexImage) || [];
   }, [product, currentIndexImage]);
+
+  const queryConfig = {
+    limit: INITIAL_PAGINATION.limit + '',
+    page: INITIAL_PAGINATION.page + '',
+    category: product?.category?._id || ''
+  };
+  const { data: productsData } = useQuery({
+    queryKey: ['products', queryConfig],
+    queryFn: () => productApi.getProducts(queryConfig as ProductListConfig),
+    placeholderData: keepPreviousData,
+    enabled: !!product?.category?._id,
+    staleTime: 3 * 60 * 1000 // 3 minutes
+  });
+
+  const relatedProducts = productsData?.data.data.products || [];
+  const relatedProductsPagination = productsData?.data.data.pagination || INITIAL_PAGINATION;
 
   useEffect(() => {
     if (product && product.images.length > 0) {
@@ -280,6 +300,26 @@ const ProductDetail = () => {
             <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}></div>
           </div>
         </div>
+      </div>
+
+      {/* Related Product List */}
+      <div className='Container'>
+        <div className='mt-8 text-gray-500 uppercase'>Có thể bạn cũng thích</div>
+        {relatedProducts && relatedProducts.length > 0 && (
+          <>
+            <div className='mt-3 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+              {relatedProducts.length > 0 &&
+                relatedProducts.map((product) => (
+                  <div className='col-span-1' key={product._id}>
+                    <Product product={product} />
+                  </div>
+                ))}
+            </div>
+            {relatedProductsPagination.page_size > 1 && (
+              <Pagination queryConfig={queryConfig} pageSize={relatedProductsPagination.page_size} />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
