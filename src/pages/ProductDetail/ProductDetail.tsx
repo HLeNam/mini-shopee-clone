@@ -6,7 +6,7 @@ import productApi from '~/apis/product.api';
 import { InputNumber } from '~/components/Input';
 import ProductRating from '~/components/ProductRating';
 import { formatCurrency, formatNumberToSocialStyle, rateSale } from '~/utils/utils';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface Params extends Record<string, string> {
   id: string;
@@ -23,6 +23,8 @@ const ProductDetail = () => {
   const [currentIndexImage, setCurrentIndexImage] = useState([0, 5]);
 
   const [activeImage, setActiveImage] = useState('');
+
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const product = productDetailData?.data.data;
 
@@ -54,6 +56,52 @@ const ProductDetail = () => {
     }
   };
 
+  const handleZoom = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    // disable event bubbling to prevent zooming when hovering over the image
+    e.stopPropagation();
+
+    const react = e.currentTarget.getBoundingClientRect();
+
+    const image = imageRef.current;
+
+    if (!image) return;
+
+    const { naturalWidth, naturalHeight } = image;
+
+    // Cách 1: Lấy offsetX, offsetY đơn giản khi đã xử lý được bubble event
+    // thêm pointer-events-none vào thẻ img để không bị bubble event
+    // const { offsetX, offsetY } = e.nativeEvent;
+
+    // Cách 2: Lấy offsetX, offsetY khi không xử lý được bubble event
+
+    /**
+     * e.pageX và e.pageY là vị trí của chuột trên toàn bộ trang,
+     * react.x và react.y là vị trí của phần tử trong viewport.
+     * Khi cuộn trang, cần cộng thêm window.scrollX và window.scrollY
+     * để tính toán chính xác vị trí của chuột trong phần tử.
+     */
+
+    const offsetX = e.pageX - (react.x + window.scrollX);
+    const offsetY = e.pageY - (react.y + window.scrollY);
+
+    const top = offsetY * (1 - naturalHeight / react.height);
+    const left = offsetX * (1 - naturalWidth / react.width);
+
+    image.style.width = naturalWidth + 'px';
+    image.style.height = naturalHeight + 'px';
+    image.style.maxWidth = 'unset';
+    image.style.top = top + 'px';
+    image.style.left = left + 'px';
+  };
+
+  const handleResetZoom = () => {
+    const image = imageRef.current;
+
+    if (!image) return;
+
+    image.removeAttribute('style'); // Reset styles to default
+  };
+
   if (!product) return null; // Handle case where product is not found
 
   return (
@@ -63,11 +111,16 @@ const ProductDetail = () => {
         <div className='bg-white p-4 shadow'>
           <div className='grid grid-cols-12 gap-9'>
             <div className='col-span-5'>
-              <div className='relative w-full pt-[100%] shadow'>
+              <div
+                className='relative w-full cursor-zoom-in overflow-hidden pt-[100%] shadow'
+                onMouseMove={(e) => handleZoom(e)}
+                onMouseLeave={() => handleResetZoom()}
+              >
                 <img
                   className='absolute top-0 left-0 h-full w-full bg-white object-contain'
-                  src={activeImage}
+                  src={activeImage || product.images[0]}
                   alt={product.name}
+                  ref={imageRef}
                 />
               </div>
               <div className='relative mt-4 grid grid-cols-5 gap-1'>
