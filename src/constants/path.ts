@@ -10,7 +10,7 @@ const PATH = {
   profile: 'profile',
 
   product: {
-    detail: ':id'
+    detail: ':nameId'
   }
 } as const;
 

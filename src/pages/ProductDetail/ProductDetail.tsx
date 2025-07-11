@@ -1,19 +1,20 @@
 import DOMPurify from 'dompurify';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import productApi from '~/apis/product.api';
 import { InputNumber } from '~/components/Input';
 import ProductRating from '~/components/ProductRating';
-import { formatCurrency, formatNumberToSocialStyle, rateSale } from '~/utils/utils';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '~/utils/utils';
 
 interface Params extends Record<string, string> {
-  id: string;
+  nameId: string;
 }
 
 const ProductDetail = () => {
-  const { id } = useParams<Params>();
+  const { nameId } = useParams<Params>();
+  const id = getIdFromNameId(nameId as string);
 
   const { data: productDetailData } = useQuery({
     queryKey: ['product', id],

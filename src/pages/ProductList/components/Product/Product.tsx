@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import ProductRating from '~/components/ProductRating';
 import PATH from '~/constants/path';
 import type { Product as ProductType } from '~/types/product.type';
-import { formatCurrency, formatNumberToSocialStyle, mergeUrlPaths } from '~/utils/utils';
+import { formatCurrency, formatNumberToSocialStyle, generateNameId, mergeUrlPaths } from '~/utils/utils';
 
 interface ProductProps {
   product: ProductType;
@@ -10,7 +10,7 @@ interface ProductProps {
 
 const Product = ({ product }: ProductProps) => {
   return (
-    <Link to={mergeUrlPaths(PATH.home, product._id)}>
+    <Link to={mergeUrlPaths(PATH.home, generateNameId({ name: product.name, id: product._id }))}>
       <div className='overflow-hidden rounded-sm bg-white shadow transition-transform duration-100 hover:translate-y-[-0.04rem] hover:shadow-md'>
         <div className='relative w-full pt-[100%]'>
           <img

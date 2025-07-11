@@ -1,12 +1,36 @@
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { isEmpty, omit, omitBy } from 'lodash';
 import { useMutation } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import authApi from '~/apis/auth.api';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 
-import Popover from '~/components/Popover';
 import PATH from '~/constants/path';
+import authApi from '~/apis/auth.api';
+import Popover from '~/components/Popover';
 import { useAppContext } from '~/contexts';
+import useQueryConfig from '~/hooks/useQueryConfig';
+
+const OMIT_SEARCH_QUERY = ['order', 'sort_by'];
+
+const searchSchema = z.object({
+  search: z.string()
+});
+
+type SearchFormData = z.infer<typeof searchSchema>;
 
 const Header = () => {
+  const queryConfig = useQueryConfig();
+
+  const navigate = useNavigate();
+
+  const { register, handleSubmit } = useForm<SearchFormData>({
+    resolver: zodResolver(searchSchema),
+    defaultValues: {
+      search: ''
+    }
+  });
+
   const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useAppContext();
 
   const logoutMutation = useMutation({
@@ -20,6 +44,24 @@ const Header = () => {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+
+  const onSubmitSearch = handleSubmit((data) => {
+    // console.log('>>> header log::: ', data);
+
+    let config = {
+      ...queryConfig,
+      name: data.search
+    };
+
+    if (queryConfig.order) {
+      config = omit(config, OMIT_SEARCH_QUERY) as typeof config;
+    }
+
+    navigate({
+      pathname: PATH.home,
+      search: createSearchParams(omitBy(config, isEmpty)).toString()
+    });
+  });
 
   return (
     <div className='bg-orange-gradient pt-2 pb-5 text-sm !font-light text-white shadow-sm'>
@@ -112,12 +154,18 @@ const Header = () => {
               </g>
             </svg>
           </Link>
-          <form className='col-span-9'>
+          <form
+            className='col-span-9'
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSubmitSearch();
+            }}
+          >
             <div className='flex rounded-md bg-white p-1'>
               <input
                 type='text'
-                name='search'
                 className='flex-grow border-none bg-transparent px-3 py-2 text-black outline-none'
+                {...register('search')}
               />
               <button className='bg-orange hover:bg-orange/90 flex-shrink-0 cursor-pointer rounded-sm px-6 py-2 text-white'>
                 <svg

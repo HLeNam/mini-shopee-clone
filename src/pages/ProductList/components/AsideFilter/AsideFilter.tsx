@@ -1,15 +1,16 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import classNames from 'classnames';
 import { isUndefined, omit, omitBy } from 'lodash';
 import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
-import { z } from 'zod';
+
+import PATH from '~/constants/path';
 import Button from '~/components/Button';
 import { InputNumber } from '~/components/Input';
-import PATH from '~/constants/path';
-import RatingStarts from '~/pages/ProductList/components/RatingStarts';
-import type { QueryConfig } from '~/pages/ProductList/ProductList';
 import type { Category } from '~/types/category.type';
+import type { QueryConfig } from '~/hooks/useQueryConfig';
+import RatingStarts from '~/pages/ProductList/components/RatingStarts';
 
 interface AsideFilterProps {
   categories: Category[];
