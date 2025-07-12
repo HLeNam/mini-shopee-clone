@@ -3,15 +3,17 @@ import { Link, createSearchParams } from 'react-router-dom';
 
 import PATH from '~/constants/path';
 import type { QueryConfig } from '~/hooks/useQueryConfig';
+import { mergeUrlPaths } from '~/utils/utils';
 
 interface PaginationProps {
   queryConfig: QueryConfig;
   pageSize: number;
+  currentPathname?: string;
 }
 
 const RANGE = 2;
 
-const Pagination = ({ queryConfig, pageSize }: PaginationProps) => {
+const Pagination = ({ queryConfig, pageSize, currentPathname = PATH.home }: PaginationProps) => {
   const page = Number(queryConfig.page);
 
   const renderPagination = () => {
@@ -72,7 +74,7 @@ const Pagination = ({ queryConfig, pageSize }: PaginationProps) => {
       return (
         <Link
           to={{
-            pathname: `/${PATH.home}`,
+            pathname: mergeUrlPaths(currentPathname),
             search: createSearchParams({
               ...queryConfig,
               page: pageNumber.toString()
@@ -94,7 +96,7 @@ const Pagination = ({ queryConfig, pageSize }: PaginationProps) => {
     <div className='mt-6 flex flex-wrap justify-center'>
       <Link
         to={{
-          pathname: `/${PATH.home}`,
+          pathname: mergeUrlPaths(currentPathname),
           search: createSearchParams({
             ...queryConfig,
             page: (page - 1).toString()
@@ -110,7 +112,7 @@ const Pagination = ({ queryConfig, pageSize }: PaginationProps) => {
       {renderPagination()}
       <Link
         to={{
-          pathname: `/${PATH.home}`,
+          pathname: mergeUrlPaths(currentPathname),
           search: createSearchParams({
             ...queryConfig,
             page: (page + 1).toString()

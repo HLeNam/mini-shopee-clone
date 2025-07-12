@@ -4,12 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import productApi from '~/apis/product.api';
-import { InputNumber } from '~/components/Input';
 import Pagination from '~/components/Pagination';
+import useQueryConfig from '~/hooks/useQueryConfig';
 import ProductRating from '~/components/ProductRating';
 import { INITIAL_PAGINATION } from '~/constants/product';
 import Product from '~/pages/ProductList/components/Product';
 import type { ProductListConfig } from '~/types/product.type';
+import QuantityController from '~/components/QuantityController';
 import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '~/utils/utils';
 
 interface Params extends Record<string, string> {
@@ -17,6 +18,8 @@ interface Params extends Record<string, string> {
 }
 
 const ProductDetail = () => {
+  const [buyCount, setBuyCount] = useState(1);
+
   const { nameId } = useParams<Params>();
   const id = getIdFromNameId(nameId as string);
 
@@ -37,9 +40,11 @@ const ProductDetail = () => {
     return product?.images.slice(...currentIndexImage) || [];
   }, [product, currentIndexImage]);
 
+  const urlQueryConfig = useQueryConfig();
+
   const queryConfig = {
-    limit: INITIAL_PAGINATION.limit + '',
-    page: INITIAL_PAGINATION.page + '',
+    limit: urlQueryConfig.limit || INITIAL_PAGINATION.limit + '',
+    page: urlQueryConfig.page || INITIAL_PAGINATION.page + '',
     category: product?.category?._id || ''
   };
   const { data: productsData } = useQuery({
@@ -121,6 +126,10 @@ const ProductDetail = () => {
     if (!image) return;
 
     image.removeAttribute('style'); // Reset styles to default
+  };
+
+  const handleBuyCountChange = (newCount: number) => {
+    setBuyCount(newCount);
   };
 
   if (!product) return null; // Handle case where product is not found
@@ -221,40 +230,16 @@ const ProductDetail = () => {
                   </div>
                 )}
               </div>
+              {/* Input Quantity */}
               <div className='mt-8 flex items-center'>
                 <div className='text-gray-500 capitalize'>Số lượng</div>
-                {/* Input Quantity */}
-                <div className='ml-10 flex items-center'>
-                  <button className='flex h-8 w-8 items-center justify-center rounded-l-sm border border-gray-300 text-gray-600'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      strokeWidth={1.5}
-                      stroke='currentColor'
-                      className='size-4'
-                    >
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M5 12h14' />
-                    </svg>
-                  </button>
-                  <InputNumber
-                    value={1}
-                    classNameInput='h-8 w-14 border-t border-b border-gray-300 p-1 text-center outline-none'
-                    classNameError='hidden'
-                  />
-                  <button className='flex h-8 w-8 items-center justify-center rounded-r-sm border border-gray-300 text-gray-600'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      strokeWidth={1.5}
-                      stroke='currentColor'
-                      className='size-4'
-                    >
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
-                    </svg>
-                  </button>
-                </div>
+                <QuantityController
+                  onDecrease={(value) => handleBuyCountChange(value)}
+                  onIncrease={(value) => handleBuyCountChange(value)}
+                  onType={(value) => handleBuyCountChange(value)}
+                  value={buyCount}
+                  max={product.quantity}
+                />
                 <div className='ml-6 text-sm text-gray-500'>{product.quantity} sản phẩm có sẵn</div>
               </div>
               <div className='mt-8 flex items-center'>
@@ -316,7 +301,11 @@ const ProductDetail = () => {
                 ))}
             </div>
             {relatedProductsPagination.page_size > 1 && (
-              <Pagination queryConfig={queryConfig} pageSize={relatedProductsPagination.page_size} />
+              <Pagination
+                currentPathname={window.location.pathname}
+                queryConfig={queryConfig}
+                pageSize={relatedProductsPagination.page_size}
+              />
             )}
           </>
         )}
