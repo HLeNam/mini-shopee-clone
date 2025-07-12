@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 import { useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 import productApi from '~/apis/product.api';
 import Pagination from '~/components/Pagination';
@@ -12,6 +12,10 @@ import Product from '~/pages/ProductList/components/Product';
 import type { ProductListConfig } from '~/types/product.type';
 import QuantityController from '~/components/QuantityController';
 import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '~/utils/utils';
+import purchaseApi from '~/apis/purchase.api';
+import { PURCHASE_STATUS } from '~/constants/purchase';
+import { toast } from 'react-toastify';
+import { queryClient } from '~/constants/queryClient';
 
 interface Params extends Record<string, string> {
   nameId: string;
@@ -57,6 +61,12 @@ const ProductDetail = () => {
 
   const relatedProducts = productsData?.data.data.products || [];
   const relatedProductsPagination = productsData?.data.data.pagination || INITIAL_PAGINATION;
+
+  const addToCartMutation = useMutation({
+    mutationFn: ({ product_id, buy_count }: { product_id: string; buy_count: number }) => {
+      return purchaseApi.addToCart({ product_id, buy_count });
+    }
+  });
 
   useEffect(() => {
     if (product && product.images.length > 0) {
@@ -130,6 +140,32 @@ const ProductDetail = () => {
 
   const handleBuyCountChange = (newCount: number) => {
     setBuyCount(newCount);
+  };
+
+  const handleAddToCart = () => {
+    addToCartMutation.mutate(
+      {
+        product_id: product?._id as string,
+        buy_count: buyCount
+      },
+      {
+        onSuccess: (data) => {
+          queryClient.invalidateQueries({
+            queryKey: ['purchases', { status: PURCHASE_STATUS.IN_CART }]
+          });
+
+          toast.success(data.data.message ?? 'Thêm vào giỏ hàng thành công', {
+            position: 'top-center',
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined
+          });
+        }
+      }
+    );
   };
 
   if (!product) return null; // Handle case where product is not found
@@ -243,7 +279,10 @@ const ProductDetail = () => {
                 <div className='ml-6 text-sm text-gray-500'>{product.quantity} sản phẩm có sẵn</div>
               </div>
               <div className='mt-8 flex items-center'>
-                <button className='border-orange bg-orange/10 text-orange hover:bg-orange/5 flex h-12 cursor-pointer items-center justify-center gap-x-3 rounded-sm border px-5 capitalize shadow-sm'>
+                <button
+                  onClick={() => handleAddToCart()}
+                  className='border-orange bg-orange/10 text-orange hover:bg-orange/5 flex h-12 cursor-pointer items-center justify-center gap-x-3 rounded-sm border px-5 capitalize shadow-sm'
+                >
                   <svg
                     className='stroke-orange text-orange h-5 w-5 fill-current align-middle'
                     xmlns='http://www.w3.org/2000/svg'

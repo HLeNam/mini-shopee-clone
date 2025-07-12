@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { isEmpty, omit, omitBy } from 'lodash';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 
@@ -10,8 +10,13 @@ import authApi from '~/apis/auth.api';
 import Popover from '~/components/Popover';
 import { useAppContext } from '~/contexts';
 import useQueryConfig from '~/hooks/useQueryConfig';
+import { PURCHASE_STATUS } from '~/constants/purchase';
+import purchaseApi from '~/apis/purchase.api';
+import image from '~/assets/images';
+import { formatCurrency } from '~/utils/utils';
 
 const OMIT_SEARCH_QUERY = ['order', 'sort_by'];
+const MAX_SHOW_PURCHASES = 5;
 
 const searchSchema = z.object({
   search: z.string()
@@ -40,6 +45,23 @@ const Header = () => {
       setProfile(null);
     }
   });
+
+  /**
+   * Khi chuyển trang thì header chỉ bị re-render
+   * chứ không bị unmount
+   * nên query này không bị inactive ==> không bị gọi lại
+   * ==> không cần phải set staleTime
+   */
+  const { data: purchasesData } = useQuery({
+    queryKey: ['purchases', { status: PURCHASE_STATUS.IN_CART }],
+    queryFn: () => purchaseApi.getPurchases({ status: PURCHASE_STATUS.IN_CART })
+  });
+
+  const purchases = purchasesData?.data.data || [];
+
+  const showPurchases = purchases.slice(0, MAX_SHOW_PURCHASES);
+
+  const cartCount = purchases.reduce((total, purchase) => total + purchase.buy_count, 0);
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -197,111 +219,53 @@ const Header = () => {
               renderPopover={
                 <div className='relative max-w-[400px] rounded-sm border border-gray-200 bg-white text-sm shadow-md'>
                   <div className='p-2'>
-                    <div className='text-gray-400 capitalize'>Sản phẩm mới thêm</div>
-                    <div className='mt-5'>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://down-vn.img.susercontent.com/file/sg-11134301-7rd4c-lwe77zdtiylbbb_tn'
-                            alt='product thumbnail'
-                            className='h-11 w-11 object-cover'
-                          />
-                        </div>
-                        <div className='ml-2 flex-grow overflow-hidden'>
-                          <div className='truncate'>
-                            Sữa Tắm Lifebuoy 800gr Detox Và Sạch Sâu Khỏi Bụi Mịn Pm2.5 Detox 100% Từ Thiên Nhiên Diệt
-                            Khuẩn
+                    {showPurchases && showPurchases.length > 0 ? (
+                      <>
+                        <div className='text-gray-400 capitalize'>Sản phẩm mới thêm</div>
+                        <div className='mt-5'>
+                          {showPurchases.map((purchase, index) => {
+                            return (
+                              <div key={index} className='-mx-2 flex px-2 py-2 hover:bg-slate-100'>
+                                <div className='flex-shrink-0'>
+                                  <img
+                                    src={purchase.product.image || 'https://via.placeholder.com/44'}
+                                    alt={purchase.product.name}
+                                    className='h-11 w-11 object-cover'
+                                  />
+                                </div>
+                                <div className='ml-2 flex-grow overflow-hidden'>
+                                  <div className='truncate'>{purchase.product.name}</div>
+                                </div>
+                                <div className='ml-2 flex-shrink-0'>
+                                  <span className='text-orange font-medium'>
+                                    ₫{formatCurrency(purchase.product.price)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <div className='mt-6 flex items-center justify-between'>
+                            <div className='text-xs text-gray-500 capitalize'>
+                              {cartCount - showPurchases.length} Thêm hàng vào giỏ
+                            </div>
+                            <button className='bg-orange hover:bg-orange/90 cursor-pointer rounded-sm px-4 py-2 text-white capitalize'>
+                              Xem giỏ hàng
+                            </button>
                           </div>
                         </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange font-medium'>₫186.000</span>
-                        </div>
+                      </>
+                    ) : (
+                      <div className='flex h-[300px] w-[300px] flex-col items-center justify-center p-2'>
+                        <img src={image.noProduct} alt='no purchase' className='mb-3 h-24 w-24 object-cover' />
+                        <div className='text-center text-gray-400 capitalize'>Chưa có sản phẩm</div>
                       </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://down-vn.img.susercontent.com/file/sg-11134301-7rd4c-lwe77zdtiylbbb_tn'
-                            alt='product thumbnail'
-                            className='h-11 w-11 object-cover'
-                          />
-                        </div>
-                        <div className='ml-2 flex-grow overflow-hidden'>
-                          <div className='truncate'>
-                            Sữa Tắm Lifebuoy 800gr Detox Và Sạch Sâu Khỏi Bụi Mịn Pm2.5 Detox 100% Từ Thiên Nhiên Diệt
-                            Khuẩn
-                          </div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange font-medium'>₫186.000</span>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://down-vn.img.susercontent.com/file/sg-11134301-7rd4c-lwe77zdtiylbbb_tn'
-                            alt='product thumbnail'
-                            className='h-11 w-11 object-cover'
-                          />
-                        </div>
-                        <div className='ml-2 flex-grow overflow-hidden'>
-                          <div className='truncate'>
-                            Sữa Tắm Lifebuoy 800gr Detox Và Sạch Sâu Khỏi Bụi Mịn Pm2.5 Detox 100% Từ Thiên Nhiên Diệt
-                            Khuẩn
-                          </div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange font-medium'>₫186.000</span>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://down-vn.img.susercontent.com/file/sg-11134301-7rd4c-lwe77zdtiylbbb_tn'
-                            alt='product thumbnail'
-                            className='h-11 w-11 object-cover'
-                          />
-                        </div>
-                        <div className='ml-2 flex-grow overflow-hidden'>
-                          <div className='truncate'>
-                            Sữa Tắm Lifebuoy 800gr Detox Và Sạch Sâu Khỏi Bụi Mịn Pm2.5 Detox 100% Từ Thiên Nhiên Diệt
-                            Khuẩn
-                          </div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange font-medium'>₫186.000</span>
-                        </div>
-                      </div>
-                      <div className='mt-4 flex'>
-                        <div className='flex-shrink-0'>
-                          <img
-                            src='https://down-vn.img.susercontent.com/file/sg-11134301-7rd4c-lwe77zdtiylbbb_tn'
-                            alt='product thumbnail'
-                            className='h-11 w-11 object-cover'
-                          />
-                        </div>
-                        <div className='ml-2 flex-grow overflow-hidden'>
-                          <div className='truncate'>
-                            Sữa Tắm Lifebuoy 800gr Detox Và Sạch Sâu Khỏi Bụi Mịn Pm2.5 Detox 100% Từ Thiên Nhiên Diệt
-                            Khuẩn
-                          </div>
-                        </div>
-                        <div className='ml-2 flex-shrink-0'>
-                          <span className='text-orange font-medium'>₫186.000</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='mt-6 flex items-center justify-between'>
-                      <div className='captitalize text-xs text-gray-500'>5 Thêm hàng vào giỏ</div>
-                      <button className='bg-orange hover:bg-orange/90 cursor-pointer rounded-sm px-4 py-2 text-white capitalize'>
-                        Xem giỏ hàng
-                      </button>
-                    </div>
+                    )}
                   </div>
                 </div>
               }
               className='flex items-center justify-center'
             >
-              <Link to='/cart'>
+              <Link to='/cart' className='relative'>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   fill='none'
@@ -316,6 +280,13 @@ const Header = () => {
                     d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z'
                   />
                 </svg>
+                <span>
+                  {cartCount > 0 ? (
+                    <span className='text-orange border-orange absolute -top-2 -right-2.5 flex items-center justify-center rounded-full border-2 bg-white px-1 py-px text-xs font-semibold'>
+                      {cartCount}
+                    </span>
+                  ) : null}
+                </span>
               </Link>
             </Popover>
           </div>

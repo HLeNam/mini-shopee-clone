@@ -2,6 +2,7 @@ import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from 'axios';
 import { toast } from 'react-toastify';
 import PATH from '~/constants/path';
 import type { AuthSuccessResponse } from '~/types/auth.type';
+import type { ErrorResponseApi } from '~/types/utils.type';
 import {
   clearUserInfoFromLocalStorage,
   getAccessTokenFromLocalStorage,
@@ -55,10 +56,15 @@ class Http {
         }
         return response;
       },
-      function (error: AxiosError) {
+      (error: AxiosError) => {
         if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
+          const errorResponse = error.response?.data as ErrorResponseApi<{
+            message?: string;
+            name?: string;
+            [key: string]: unknown;
+          }>;
           const message =
-            (error.response?.data as { message?: string })?.message || error.message || 'An error occurred';
+            (errorResponse?.data as { message?: string })?.message || error.message || 'An error occurred';
           toast.error(message, {
             position: 'top-right',
             autoClose: 5000,
@@ -69,6 +75,16 @@ class Http {
             progress: undefined,
             theme: 'colored'
           });
+
+          if (error.response?.status === HttpStatusCode.Unauthorized) {
+            // Clear user info if unauthorized
+            clearUserInfoFromLocalStorage();
+            this.accessToken = '';
+            // Optionally, redirect to login page
+            setTimeout(() => {
+              window.location.href = `/${PATH.login}`;
+            }, 1000);
+          }
         }
         return Promise.reject(error);
       }
