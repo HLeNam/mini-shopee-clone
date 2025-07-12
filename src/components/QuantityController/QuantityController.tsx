@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { InputNumber, type InputNumberProps } from '~/components/Input';
 
 interface QuantityControllerProps extends InputNumberProps {
@@ -9,14 +10,16 @@ interface QuantityControllerProps extends InputNumberProps {
 }
 
 const QuantityController = ({
-  max = 100,
-  value = 1,
+  max,
+  value,
   onIncrease = () => {},
   onDecrease = () => {},
   onType = () => {},
   classNameWrapper = 'ml-10',
   ...rest
 }: QuantityControllerProps) => {
+  const [localValue, setLocalValue] = useState<number>(value !== undefined ? +value : 1);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const _value = +event.target.value;
 
@@ -29,10 +32,11 @@ const QuantityController = ({
     if (onType && typeof onType === 'function') {
       onType(+event.target.value);
     }
+    setLocalValue(+event.target.value);
   };
 
   const handleIncrease = () => {
-    let newValue = +value + 1;
+    let newValue = value ? +value + 1 : localValue + 1;
     if (max !== undefined && newValue > max) {
       newValue = max;
     }
@@ -40,10 +44,11 @@ const QuantityController = ({
     if (onIncrease && typeof onIncrease === 'function') {
       onIncrease(newValue);
     }
+    setLocalValue(newValue);
   };
 
   const handleDecrease = () => {
-    let newValue = +value - 1;
+    let newValue = value ? +value - 1 : localValue - 1;
     if (newValue < 1) {
       newValue = 1;
     }
@@ -51,6 +56,7 @@ const QuantityController = ({
     if (onDecrease && typeof onDecrease === 'function') {
       onDecrease(newValue);
     }
+    setLocalValue(newValue);
   };
 
   return (
@@ -71,7 +77,7 @@ const QuantityController = ({
         </svg>
       </button>
       <InputNumber
-        value={value}
+        value={value !== undefined ? value : localValue}
         classNameInput='h-8 w-14 border-t border-b border-gray-300 p-1 text-center outline-none'
         classNameError='hidden'
         onChange={(e) => handleChange(e)}

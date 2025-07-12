@@ -6,14 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 
 import PATH from '~/constants/path';
+import image from '~/assets/images';
 import authApi from '~/apis/auth.api';
 import Popover from '~/components/Popover';
 import { useAppContext } from '~/contexts';
-import useQueryConfig from '~/hooks/useQueryConfig';
-import { PURCHASE_STATUS } from '~/constants/purchase';
 import purchaseApi from '~/apis/purchase.api';
-import image from '~/assets/images';
 import { formatCurrency } from '~/utils/utils';
+import useQueryConfig from '~/hooks/useQueryConfig';
+import { queryClient } from '~/constants/queryClient';
+import { PURCHASE_STATUS } from '~/constants/purchase';
 
 const OMIT_SEARCH_QUERY = ['order', 'sort_by'];
 const MAX_SHOW_PURCHASES = 5;
@@ -43,6 +44,7 @@ const Header = () => {
     onSuccess: () => {
       setIsAuthenticated(false);
       setProfile(null);
+      queryClient.removeQueries({ queryKey: ['purchases', { status: PURCHASE_STATUS.IN_CART }] });
     }
   });
 
@@ -54,7 +56,8 @@ const Header = () => {
    */
   const { data: purchasesData } = useQuery({
     queryKey: ['purchases', { status: PURCHASE_STATUS.IN_CART }],
-    queryFn: () => purchaseApi.getPurchases({ status: PURCHASE_STATUS.IN_CART })
+    queryFn: () => purchaseApi.getPurchases({ status: PURCHASE_STATUS.IN_CART }),
+    enabled: isAuthenticated
   });
 
   const purchases = purchasesData?.data.data || [];
@@ -265,7 +268,7 @@ const Header = () => {
               }
               className='flex items-center justify-center'
             >
-              <Link to='/cart' className='relative'>
+              <Link to={PATH.cart} className='relative'>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   fill='none'

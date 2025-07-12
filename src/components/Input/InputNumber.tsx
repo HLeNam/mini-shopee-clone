@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react';
+import { useState, type InputHTMLAttributes } from 'react';
 
 export interface InputNumberProps extends InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string;
@@ -15,10 +15,13 @@ export interface InputNumberProps extends InputHTMLAttributes<HTMLInputElement> 
 const InputNumber = ({
   errorMessage,
   className,
+  value,
   classNameInput = 'w-full rounded-sm border border-gray-300 p-3 outline-none focus:border-gray-500 focus:shadow-sm',
   classNameError = 'mt-1 min-h-[1.25rem] text-sm text-red-600',
   ...rest
 }: InputNumberProps) => {
+  const [localValue, setLocalValue] = useState<string>(value !== undefined ? String(value) : '');
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
 
@@ -26,8 +29,10 @@ const InputNumber = ({
     if ((/^[0-9]*\.?[0-9]*$/.test(value) || value === '') && rest.onChange) {
       event.target.value = value;
       rest.onChange(event); // Gọi hàm onChange nếu có
+      setLocalValue(value); // Cập nhật giá trị cục bộ
     } else {
       // Nếu nhập không hợp lệ, giữ nguyên giá trị cũ
+      setLocalValue(event.target.value);
       event.target.value = event.target.value.slice(0, -1);
     }
   };
@@ -38,6 +43,7 @@ const InputNumber = ({
         type={rest.type || 'text'}
         className={classNameInput}
         {...rest}
+        value={value !== undefined ? value : localValue}
         onChange={(e) => {
           handleChange(e);
         }}

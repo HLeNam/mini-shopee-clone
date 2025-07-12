@@ -17,9 +17,41 @@ const getPurchases = async (params: { status: PurchaseListStatus }) => {
   });
 };
 
+interface ByProductsBody {
+  product_id: string;
+  buy_count: number;
+}
+const byProducts = async (body: ByProductsBody[]) => {
+  return http.post<SuccessResponseApi<Purchase[]>>(`${URL}/by-products`, body);
+};
+
+interface UpdatePurchaseBody {
+  product_id: string;
+  buy_count: number;
+}
+const updatePurchase = async ({ product_id, buy_count }: UpdatePurchaseBody) => {
+  return http.put<SuccessResponseApi<Purchase>>(`${URL}/update-purchase`, {
+    product_id,
+    buy_count
+  });
+};
+
+const deletePurchases = async (product_ids: string[]) => {
+  return http.delete<
+    SuccessResponseApi<{
+      deleted_count: number;
+    }>
+  >(`${URL}`, {
+    data: product_ids
+  });
+};
+
 const purchaseApi = {
   addToCart,
-  getPurchases
+  getPurchases,
+  byProducts,
+  updatePurchase,
+  deletePurchases
 };
 
 export default purchaseApi;

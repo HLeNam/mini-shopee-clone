@@ -6,6 +6,8 @@ import type { AppRouteObject } from '~/types/route.type';
 
 const Profile = lazy(() => import('~/pages/Profile'));
 
+const Cart = lazy(() => import('~/pages/Cart/Cart'));
+
 const privateRoutes: AppRouteObject[] = [
   {
     path: '/',
@@ -14,6 +16,10 @@ const privateRoutes: AppRouteObject[] = [
       {
         path: PATH.profile,
         Component: Profile
+      },
+      {
+        path: PATH.cart,
+        Component: Cart
       }
     ]
   }

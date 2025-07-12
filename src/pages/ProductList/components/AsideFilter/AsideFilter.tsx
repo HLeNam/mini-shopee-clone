@@ -52,6 +52,7 @@ const AsideFilter = ({ categories = [], queryConfig }: AsideFilterProps) => {
     control,
     handleSubmit,
     trigger,
+    getValues,
     formState: { errors }
   } = useForm<FormData>({
     resolver: zodResolver(FormDataSchema),
@@ -215,7 +216,9 @@ const AsideFilter = ({ categories = [], queryConfig }: AsideFilterProps) => {
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
-                    trigger('price_min');
+                    if (getValues('price_min')) {
+                      trigger('price_min');
+                    }
                   }}
                 />
               )}
