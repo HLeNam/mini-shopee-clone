@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { InputNumber, type InputNumberProps } from '~/components/Input';
 
 interface QuantityControllerProps extends InputNumberProps {
@@ -6,7 +6,9 @@ interface QuantityControllerProps extends InputNumberProps {
   onIncrease?: (value: number) => void;
   onDecrease?: (value: number) => void;
   onType?: (value: number) => void;
+  onFocusOut?: (value: number) => void;
   classNameWrapper?: string;
+  disabled?: boolean;
 }
 
 const QuantityController = ({
@@ -15,55 +17,95 @@ const QuantityController = ({
   onIncrease = () => {},
   onDecrease = () => {},
   onType = () => {},
+  onFocusOut = () => {},
   classNameWrapper = 'ml-10',
+  disabled,
   ...rest
 }: QuantityControllerProps) => {
   const [localValue, setLocalValue] = useState<number>(value !== undefined ? +value : 1);
+  const [inputValue, setInputValue] = useState<string>(value !== undefined ? value.toString() : '1');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const _value = +event.target.value;
+    const inputVal = event.target.value;
 
-    if (max !== undefined && _value > max) {
-      event.target.value = max.toString();
-    } else if (_value < 1) {
-      event.target.value = '1';
-    }
+    if (inputVal === '' || /^\d*$/.test(inputVal)) {
+      setInputValue(inputVal);
 
-    if (onType && typeof onType === 'function') {
-      onType(+event.target.value);
+      if (inputVal !== '' && !isNaN(+inputVal)) {
+        let numValue = +inputVal;
+
+        if (max !== undefined && numValue > max) {
+          numValue = max;
+          setInputValue(max.toString());
+        }
+
+        setLocalValue(numValue);
+        if (onType && typeof onType === 'function') {
+          onType(numValue);
+        }
+      }
     }
-    setLocalValue(+event.target.value);
   };
 
   const handleIncrease = () => {
-    let newValue = value ? +value + 1 : localValue + 1;
+    let newValue = value !== undefined ? +value + 1 : localValue + 1;
     if (max !== undefined && newValue > max) {
       newValue = max;
     }
 
+    setLocalValue(newValue);
+    setInputValue(newValue.toString());
+
     if (onIncrease && typeof onIncrease === 'function') {
       onIncrease(newValue);
     }
-    setLocalValue(newValue);
   };
 
   const handleDecrease = () => {
-    let newValue = value ? +value - 1 : localValue - 1;
+    let newValue = value !== undefined ? +value - 1 : localValue - 1;
     if (newValue < 1) {
       newValue = 1;
     }
 
+    setLocalValue(newValue);
+    setInputValue(newValue.toString());
+
     if (onDecrease && typeof onDecrease === 'function') {
       onDecrease(newValue);
     }
-    setLocalValue(newValue);
   };
+
+  const handleBlur = () => {
+    let finalValue = inputValue === '' ? 1 : +inputValue;
+
+    if (finalValue < 1) {
+      finalValue = 1;
+    }
+    if (max !== undefined && finalValue > max) {
+      finalValue = max;
+    }
+
+    setLocalValue(finalValue);
+    setInputValue(finalValue.toString());
+
+    if (onFocusOut && typeof onFocusOut === 'function') {
+      onFocusOut(finalValue);
+    }
+  };
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setInputValue(value.toString());
+      setLocalValue(+value);
+    }
+  }, [value]);
 
   return (
     <div className={`flex items-center ${classNameWrapper}`}>
       <button
         onClick={() => handleDecrease()}
         className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-l-sm border border-gray-300 text-gray-600'
+        disabled={disabled}
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -77,15 +119,18 @@ const QuantityController = ({
         </svg>
       </button>
       <InputNumber
-        value={value !== undefined ? value : localValue}
+        value={inputValue}
         classNameInput='h-8 w-14 border-t border-b border-gray-300 p-1 text-center outline-none'
         classNameError='hidden'
         onChange={(e) => handleChange(e)}
+        onBlur={() => handleBlur()}
         {...rest}
+        disabled={disabled}
       />
       <button
         onClick={() => handleIncrease()}
         className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-r-sm border border-gray-300 text-gray-600'
+        disabled={disabled}
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
