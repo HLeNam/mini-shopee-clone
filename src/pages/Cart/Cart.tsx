@@ -6,16 +6,61 @@ import { formatCurrency, generateNameId, mergeUrlPaths } from '~/utils/utils';
 import PATH from '~/constants/path';
 import QuantityController from '~/components/QuantityController';
 import Button from '~/components/Button';
+import type { Purchase } from '~/types/purchase.type';
+import { useEffect, useMemo, useState } from 'react';
+import produce from 'immer';
+
+interface ExtendedPurchase extends Purchase {
+  disabled: boolean;
+  checked: boolean;
+}
 
 const Cart = () => {
+  const [extendedPurchases, setExtendedPurchases] = useState<ExtendedPurchase[]>([]);
+
   const { data: purchasesData } = useQuery({
     queryKey: ['purchases', { status: PURCHASE_STATUS.IN_CART }],
     queryFn: () => purchaseApi.getPurchases({ status: PURCHASE_STATUS.IN_CART })
   });
 
-  const purchases = purchasesData?.data.data || [];
+  const purchases = useMemo(() => {
+    return purchasesData?.data.data || [];
+  }, [purchasesData]);
+
+  const isAllChecked = extendedPurchases.every((purchase) => purchase.checked);
+
+  useEffect(() => {
+    setExtendedPurchases(
+      purchases.map((purchase) => {
+        return {
+          ...purchase,
+          disabled: false,
+          checked: false
+        };
+      })
+    );
+  }, [purchases]);
 
   const cartCount = purchases.reduce((total, purchase) => total + purchase.buy_count, 0);
+
+  const handleCheck = (productIndex: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setExtendedPurchases((prev) => {
+      return produce(prev, (draft) => {
+        draft[productIndex].checked = event.target.checked;
+      });
+    });
+  };
+
+  const handleCheckAll = () => {
+    setExtendedPurchases((prev) => {
+      return prev.map((purchase) => {
+        return {
+          ...purchase,
+          checked: !isAllChecked
+        };
+      });
+    });
+  };
 
   return (
     <div className='bg-neutral-100 py-16'>
@@ -26,7 +71,12 @@ const Cart = () => {
               <div className='col-span-6'>
                 <div className='flex items-center'>
                   <div className='flex flex-shrink-0 items-center justify-center pr-3'>
-                    <input type='checkbox' className='accent-orange h-5 w-5' />
+                    <input
+                      type='checkbox'
+                      className='accent-orange h-5 w-5'
+                      checked={isAllChecked}
+                      onChange={handleCheckAll}
+                    />
                   </div>
                   <div className='flex-grow text-black'>Sản phẩm</div>
                 </div>
@@ -41,8 +91,8 @@ const Cart = () => {
               </div>
             </div>
             <div className='my-3 rounded-sm bg-white p-5 shadow'>
-              {purchases && purchases.length > 0 ? (
-                purchases.map((purchase) => {
+              {extendedPurchases && extendedPurchases.length > 0 ? (
+                extendedPurchases.map((purchase, index) => {
                   const linkToProduct = mergeUrlPaths(
                     PATH.home,
                     generateNameId({ name: purchase.product.name, id: purchase.product._id })
@@ -55,7 +105,12 @@ const Cart = () => {
                       <div className='col-span-6'>
                         <div className='flex'>
                           <div className='flex flex-shrink-0 items-center justify-center pr-3'>
-                            <input type='checkbox' className='accent-orange h-5 w-5' />
+                            <input
+                              type='checkbox'
+                              className='accent-orange h-5 w-5'
+                              checked={purchase.checked}
+                              onChange={handleCheck(index)}
+                            />
                           </div>
                           <div className='flex-grow'>
                             <div className='flex'>
@@ -116,9 +171,16 @@ const Cart = () => {
         <div className='sticky bottom-0 z-10 mt-10 flex flex-col rounded-sm border border-gray-100 bg-white p-5 shadow lg:flex-row lg:items-center'>
           <div className='flex items-center'>
             <div className='flex flex-shrink-0 items-center justify-center pr-3'>
-              <input type='checkbox' className='accent-orange h-5 w-5' />
+              <input
+                type='checkbox'
+                className='accent-orange h-5 w-5'
+                checked={isAllChecked}
+                onChange={handleCheckAll}
+              />
             </div>
-            <button className='mx-3 border-none bg-none'>Chọn tất cả</button>
+            <button className='mx-3 cursor-pointer border-none bg-none' onClick={handleCheckAll}>
+              Chọn tất cả ({cartCount})
+            </button>
             <button className='mx-3 border-none bg-none'>Xóa</button>
           </div>
           <div className='mt-5 flex flex-col md:flex-row md:items-center lg:mt-0 lg:ml-auto'>
