@@ -25,6 +25,14 @@ const byProducts = async (body: ByProductsBody[]) => {
   return http.post<SuccessResponseApi<Purchase[]>>(`${URL}/by-products`, body);
 };
 
+interface BuyProductsBody {
+  product_id: string;
+  buy_count: number;
+}
+const buyProducts = async (body: BuyProductsBody[]) => {
+  return http.post<SuccessResponseApi<Purchase[]>>(`${URL}/buy-products`, body);
+};
+
 interface UpdatePurchaseBody {
   product_id: string;
   buy_count: number;
@@ -51,7 +59,8 @@ const purchaseApi = {
   getPurchases,
   byProducts,
   updatePurchase,
-  deletePurchases
+  deletePurchases,
+  buyProducts
 };
 
 export default purchaseApi;
