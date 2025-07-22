@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import withAuthGuard from '~/components/AuthGuard';
 import PATH from '~/constants/path';
+import CartLayout from '~/layouts/CartLayout';
 import MainLayout from '~/layouts/MainLayout';
 import type { AppRouteObject } from '~/types/route.type';
 
@@ -16,9 +17,15 @@ const privateRoutes: AppRouteObject[] = [
       {
         path: PATH.profile,
         Component: Profile
-      },
+      }
+    ]
+  },
+  {
+    path: PATH.cart,
+    Component: withAuthGuard(CartLayout),
+    children: [
       {
-        path: PATH.cart,
+        path: '',
         Component: Cart
       }
     ]
