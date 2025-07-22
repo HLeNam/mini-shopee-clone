@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
@@ -11,17 +11,20 @@ import { INITIAL_PAGINATION } from '~/constants/product';
 import Product from '~/pages/ProductList/components/Product';
 import type { ProductListConfig } from '~/types/product.type';
 import QuantityController from '~/components/QuantityController';
-import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, rateSale } from '~/utils/utils';
+import { formatCurrency, formatNumberToSocialStyle, getIdFromNameId, mergeUrlPaths, rateSale } from '~/utils/utils';
 import purchaseApi from '~/apis/purchase.api';
 import { PURCHASE_STATUS } from '~/constants/purchase';
 import { toast } from 'react-toastify';
 import { queryClient } from '~/constants/queryClient';
+import PATH from '~/constants/path';
 
 interface Params extends Record<string, string> {
   nameId: string;
 }
 
 const ProductDetail = () => {
+  const navigate = useNavigate();
+
   const [buyCount, setBuyCount] = useState(1);
 
   const { nameId } = useParams<Params>();
@@ -168,6 +171,25 @@ const ProductDetail = () => {
     );
   };
 
+  const handleBuyNow = async () => {
+    try {
+      const res = await addToCartMutation.mutateAsync({
+        product_id: product?._id as string,
+        buy_count: buyCount
+      });
+
+      const purchase = res.data.data;
+
+      navigate(mergeUrlPaths(PATH.cart), {
+        state: {
+          purchaseId: purchase._id
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (!product) return null; // Handle case where product is not found
 
   return (
@@ -303,7 +325,10 @@ const ProductDetail = () => {
                   </svg>
                   Thêm vào giỏ hàng
                 </button>
-                <button className='bg-orange hover:bg-orange/90 ml-4 flex h-12 min-w-[5rem] cursor-pointer items-center justify-center rounded-sm px-5 text-white capitalize shadow-sm outline-none'>
+                <button
+                  onClick={() => handleBuyNow()}
+                  className='bg-orange hover:bg-orange/90 ml-4 flex h-12 min-w-[5rem] cursor-pointer items-center justify-center rounded-sm px-5 text-white capitalize shadow-sm outline-none'
+                >
                   Mua ngay
                 </button>
               </div>
