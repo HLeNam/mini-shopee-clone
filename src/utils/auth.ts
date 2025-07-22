@@ -1,5 +1,7 @@
 import type { UserProfile } from '~/types/user.type';
 
+export const LocalStorageEventTarget = new EventTarget();
+
 export const saveAccessTokenToLocalStorage = (accessToken: string) => {
   localStorage.setItem('access_token', accessToken);
 };
@@ -27,6 +29,9 @@ export const clearProfileFromLocalStorage = () => {
 export const clearUserInfoFromLocalStorage = () => {
   clearAccessTokenFromLocalStorage();
   clearProfileFromLocalStorage();
+
+  const clearLocalStorageEvent = new Event('userInfoCleared');
+  LocalStorageEventTarget.dispatchEvent(clearLocalStorageEvent);
 };
 
 export const clearLocalStorage = () => {

@@ -63,8 +63,9 @@ class Http {
             name?: string;
             [key: string]: unknown;
           }>;
-          const message =
-            (errorResponse?.data as { message?: string })?.message || error.message || 'An error occurred';
+
+          const message = errorResponse.message || error.message || 'An error occurred';
+
           toast.error(message, {
             position: 'top-right',
             autoClose: 5000,
@@ -81,9 +82,9 @@ class Http {
             clearUserInfoFromLocalStorage();
             this.accessToken = '';
             // Optionally, redirect to login page
-            setTimeout(() => {
-              window.location.href = `/${PATH.login}`;
-            }, 1000);
+            // setTimeout(() => {
+            //   window.location.href = `/${PATH.login}`;
+            // }, 1000);
           }
         }
         return Promise.reject(error);
