@@ -71,7 +71,7 @@ const UserSideNav = () => {
 
         <Link
           to={mergeUrlPaths(PATH.user.root, PATH.user.purchaseHistory)}
-          className='flex items-center text-gray-600 capitalize transition-colors'
+          className='flex items-center text-black capitalize transition-colors'
         >
           <div className='mr-3 h-[22px] w-[22px]'>
             <img
