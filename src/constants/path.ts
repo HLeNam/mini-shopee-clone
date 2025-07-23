@@ -7,13 +7,18 @@ const PATH = {
 
   logout: 'logout',
 
-  profile: 'profile',
-
   product: {
     detail: ':nameId'
   },
 
-  cart: 'cart'
+  cart: 'cart',
+
+  user: {
+    root: 'user',
+    profile: 'profile',
+    changePassword: 'change-password',
+    purchaseHistory: 'purchase-history'
+  }
 } as const;
 
 export default PATH;

@@ -7,6 +7,7 @@ import Popover from '~/components/Popover';
 import { useAppContext } from '~/contexts';
 import { queryClient } from '~/constants/queryClient';
 import { PURCHASE_STATUS } from '~/constants/purchase';
+import { mergeUrlPaths } from '~/utils/utils';
 
 const NavHeader = () => {
   const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useAppContext();
@@ -77,7 +78,10 @@ const NavHeader = () => {
           renderPopover={
             <div className='relative rounded-sm border border-gray-200 bg-white shadow-md'>
               <div className='flex flex-col justify-start px-4 py-2'>
-                <Link to={`/${PATH.profile}`} className='w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
+                <Link
+                  to={mergeUrlPaths(PATH.user.root, PATH.user.profile)}
+                  className='w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'
+                >
                   Tài khoản của tôi
                 </Link>
                 <Link to='/cart' className='mt-2 w-full cursor-pointer py-2 text-left hover:text-[#00bfa5]'>
