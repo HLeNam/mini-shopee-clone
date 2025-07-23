@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
+
 import PATH from '~/constants/path';
+import image from '~/assets/images';
+import { useAppContext } from '~/contexts';
 import { mergeUrlPaths } from '~/utils/utils';
 
 const UserSideNav = () => {
+  const { profile } = useAppContext();
+
   return (
     <div>
       <div className='flex items-center border-b border-b-gray-200 py-4'>
@@ -12,7 +17,10 @@ const UserSideNav = () => {
         >
           <img
             className='h-full w-full object-cover'
-            src='https://images.unsplash.com/photo-1548637724-cbc39e0c8d3b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YmVhdXRpZnVsJTIwd29tYW58ZW58MHx8MHx8fDA%3D'
+            src={profile?.avatar || image.noAvatar}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = image.noAvatar;
+            }}
           />
         </Link>
         <div className='flex-grow pl-4'>

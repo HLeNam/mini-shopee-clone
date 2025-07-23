@@ -1,8 +1,9 @@
-import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from 'axios';
 import { toast } from 'react-toastify';
+import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from 'axios';
+
 import PATH from '~/constants/path';
-import type { AuthSuccessResponse } from '~/types/auth.type';
 import type { ErrorResponseApi } from '~/types/utils.type';
+import type { AuthSuccessResponse } from '~/types/auth.type';
 import {
   clearUserInfoFromLocalStorage,
   getAccessTokenFromLocalStorage,
