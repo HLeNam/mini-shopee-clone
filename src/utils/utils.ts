@@ -1,4 +1,6 @@
 import axios, { AxiosError, HttpStatusCode } from 'axios';
+import image from '~/assets/images';
+import config from '~/constants/config';
 
 // Type predicates to check if an error is an AxiosError
 export function isAxiosError<T>(error: unknown): error is AxiosError<T> {
@@ -55,4 +57,45 @@ export function generateNameId({ name, id }: { name: string; id: string }) {
 export function getIdFromNameId(nameId: string) {
   const parts = nameId.split('-i::');
   return parts.length > 1 ? parts[1] : '';
+}
+
+export function parseFileSize(
+  size: number,
+  {
+    unit = 'B',
+    toUnit = 'MB',
+    decimalPlaces = 2
+  }: {
+    unit?: 'B' | 'KB' | 'MB' | 'GB';
+    toUnit?: 'B' | 'KB' | 'MB' | 'GB';
+    decimalPlaces?: number;
+  } = {}
+): {
+  value: number;
+  unit: 'B' | 'KB' | 'MB' | 'GB';
+  formatted: string;
+} {
+  const units: ('B' | 'KB' | 'MB' | 'GB')[] = ['B', 'KB', 'MB', 'GB'];
+  const fromIndex = units.indexOf(unit);
+  const toIndex = units.indexOf(toUnit);
+
+  if (fromIndex === -1 || toIndex === -1) {
+    throw new Error(`Invalid unit or toUnit`);
+  }
+
+  const step = toIndex - fromIndex;
+  const convertedValue = size / Math.pow(1024, step);
+  const formatted = `${convertedValue.toFixed(decimalPlaces)} ${toUnit}`;
+
+  return {
+    value: convertedValue,
+    unit: toUnit,
+    formatted
+  };
+}
+
+export function getAvatarUrl(avatarName?: string) {
+  const url = avatarName?.startsWith('http') ? avatarName : `${config.baseUrl}/images/${avatarName}`;
+
+  return avatarName ? url : image.noAvatar;
 }

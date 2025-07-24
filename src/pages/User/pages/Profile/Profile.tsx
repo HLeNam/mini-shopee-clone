@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
@@ -11,7 +11,22 @@ import { Input } from '~/components/Input';
 import { useAppContext } from '~/contexts';
 import DateSelect from '~/pages/User/components/DateSelect';
 import { UpdateUserBodySchema, type UpdateUserBody } from '~/types/user.type';
+import type { ResponseApi } from '~/types/utils.type';
 import { saveProfileToLocalStorage } from '~/utils/auth';
+import { getAvatarUrl, isAxiosUnprocessableEntityError, parseFileSize } from '~/utils/utils';
+
+/**
+ * Flow upload ảnh:
+ * Flow 1:
+ * Nhấn upload: upload lên server ngay lập tức ==> server trả về URL ảnh
+ * Nhấn submit thì gửi ảnh + data lên server
+ * ==> Nhanh, nhưng dễ bị spam
+ *
+ * Flow 2:
+ * Nhấn upload: không upload lên server
+ * Nhấn submit thì tiến hành upload ảnh lên server, nếu upload thành công thì tiến hành gọi API update profile
+ * ==> Chậm hơn vì phải chờ gọi xong API upload ảnh mới gọi API update profile
+ */
 
 const UpdateProfileSchema = UpdateUserBodySchema.omit({
   password: true,
@@ -22,13 +37,23 @@ const UpdateProfileSchema = UpdateUserBodySchema.omit({
 
 type UpdateProfileSchemaType = z.infer<typeof UpdateProfileSchema>;
 
+const MAX_FILE_SIZE_MB = 1;
+
 const Profile = () => {
+  const [file, setFile] = useState<File>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewImageUrl = useMemo(() => {
+    return file ? URL.createObjectURL(file) : '';
+  }, [file]);
+
   const {
     register,
     control,
     handleSubmit,
     formState: { errors },
-    setValue
+    setValue,
+    watch,
+    setError
   } = useForm<UpdateProfileSchemaType>({
     resolver: zodResolver(UpdateProfileSchema),
     defaultValues: {
@@ -39,6 +64,8 @@ const Profile = () => {
       avatar: ''
     }
   });
+
+  const avatar = watch('avatar');
 
   const {
     data: profileData,
@@ -56,6 +83,10 @@ const Profile = () => {
     mutationFn: userApi.updateProfile
   });
 
+  const uploadAvatarMutation = useMutation({
+    mutationFn: userApi.uploadAvatar
+  });
+
   const { setProfile } = useAppContext();
 
   useEffect(() => {
@@ -70,15 +101,27 @@ const Profile = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      let avatarName = data.avatar;
+
+      if (file) {
+        const form = new FormData();
+        form.append('image', file);
+        const uploadRes = await uploadAvatarMutation.mutateAsync(form);
+
+        avatarName = uploadRes.data.data;
+
+        setValue('avatar', avatarName);
+      }
+
       const persistedData: UpdateUserBody = {
         name: data.name,
         phone: data.phone,
         address: data.address,
         date_of_birth: data.date_of_birth ? data.date_of_birth.toISOString() : undefined,
-        avatar: data.avatar
+        avatar: avatarName
       };
 
-      console.log('>>> Persisted Data:', persistedData);
+      // console.log('>>> Persisted Data:', persistedData);
 
       const res = await updateProfileMutation.mutateAsync(persistedData);
 
@@ -92,9 +135,43 @@ const Profile = () => {
         refetchProfile();
       }
     } catch (error) {
+      if (isAxiosUnprocessableEntityError<ResponseApi<UpdateUserBody>>(error)) {
+        const errorsResponse = error.response?.data.data;
+        Object.entries(errorsResponse || {}).forEach(([key, value]) => {
+          setError(key as keyof UpdateProfileSchemaType, {
+            message: value as string,
+            type: 'Server'
+          });
+        });
+        return;
+      }
       console.error(error);
     }
   });
+
+  const handleUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileFromLocal = event.target.files?.[0];
+
+    const fileSize = parseFileSize(fileFromLocal?.size || 0);
+
+    // console.log('>>> File Size:', fileSize);
+
+    if (!fileFromLocal || fileSize.value > MAX_FILE_SIZE_MB || !fileFromLocal.type.match(/image\/(jpeg|png|jpg)/)) {
+      toast.error(`Vui lòng chọn ảnh có định dạng .JPEG, .PNG và kích thước tối đa ${MAX_FILE_SIZE_MB} MB`, {
+        position: 'top-center',
+        autoClose: 1000
+      });
+      return;
+    }
+
+    setFile(fileFromLocal);
+  };
 
   return (
     <div className='rounded-sm bg-white px-2 pb-10 shadow md:px-7 md:pb-20'>
@@ -180,16 +257,26 @@ const Profile = () => {
             <div className='my-5 h-24 w-24'>
               <img
                 className='h-full w-full rounded-full object-cover'
-                src={profile?.avatar || image.noAvatar}
+                src={previewImageUrl || getAvatarUrl(avatar || profile?.avatar)}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = image.noAvatar;
                 }}
               ></img>
             </div>
-            <input className='hidden' type='file' accept='.jpg,.jpeg,.png' />
+            <input
+              onClick={(e) => {
+                (e.target as HTMLInputElement).value = ''; // Reset file input value to allow re-uploading the same file
+              }}
+              onChange={onFileChange}
+              ref={fileInputRef}
+              className='hidden'
+              type='file'
+              accept='.jpg,.jpeg,.png'
+            />
             <button
+              onClick={handleUpload}
               type='button'
-              className='flex h-10 items-center justify-center rounded-sm border bg-white px-6 text-sm text-gray-600 capitalize shadow-sm'
+              className='flex h-10 cursor-pointer items-center justify-center rounded-sm border bg-white px-6 text-sm text-gray-600 capitalize shadow-sm'
             >
               Chọn ảnh
             </button>

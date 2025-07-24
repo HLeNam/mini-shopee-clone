@@ -10,6 +10,7 @@ import {
   saveAccessTokenToLocalStorage,
   saveProfileToLocalStorage
 } from '~/utils/auth';
+import config from '~/constants/config';
 
 class Http {
   instance: AxiosInstance;
@@ -18,7 +19,7 @@ class Http {
   constructor() {
     this.accessToken = getAccessTokenFromLocalStorage() || '';
     this.instance = axios.create({
-      baseURL: 'https://api-ecom.duthanhduoc.com',
+      baseURL: config.baseUrl,
       timeout: 10000, // 10 seconds timeout
       headers: {
         'Content-Type': 'application/json'
@@ -65,7 +66,7 @@ class Http {
             [key: string]: unknown;
           }>;
 
-          const message = errorResponse.message || error.message || 'An error occurred';
+          const message = errorResponse?.message || error?.message || 'An error occurred';
 
           toast.error(message, {
             position: 'top-right',

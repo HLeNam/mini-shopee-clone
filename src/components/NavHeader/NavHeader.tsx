@@ -7,7 +7,7 @@ import Popover from '~/components/Popover';
 import { useAppContext } from '~/contexts';
 import { queryClient } from '~/constants/queryClient';
 import { PURCHASE_STATUS } from '~/constants/purchase';
-import { mergeUrlPaths } from '~/utils/utils';
+import { getAvatarUrl, mergeUrlPaths } from '~/utils/utils';
 import image from '~/assets/images';
 
 const NavHeader = () => {
@@ -101,7 +101,7 @@ const NavHeader = () => {
         >
           <div className='mr-2 h-6 w-6 flex-shrink-0'>
             <img
-              src={profile?.avatar || image.noAvatar}
+              src={getAvatarUrl(profile?.avatar)}
               alt='avatar'
               className='h-full w-full rounded-full object-cover'
               onError={(e) => {

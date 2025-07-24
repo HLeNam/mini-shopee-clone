@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PATH from '~/constants/path';
 import image from '~/assets/images';
 import { useAppContext } from '~/contexts';
-import { mergeUrlPaths } from '~/utils/utils';
+import { getAvatarUrl, mergeUrlPaths } from '~/utils/utils';
 
 const UserSideNav = () => {
   const { profile } = useAppContext();
@@ -17,7 +17,7 @@ const UserSideNav = () => {
         >
           <img
             className='h-full w-full object-cover'
-            src={profile?.avatar || image.noAvatar}
+            src={getAvatarUrl(profile?.avatar)}
             onError={(e) => {
               (e.target as HTMLImageElement).src = image.noAvatar;
             }}
