@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 import PATH from '~/constants/path';
 import image from '~/assets/images';
 import { useAppContext } from '~/contexts';
 import { getAvatarUrl, mergeUrlPaths } from '~/utils/utils';
+import classNames from 'classnames';
 
 const UserSideNav = () => {
   const { profile } = useAppContext();
@@ -24,7 +25,7 @@ const UserSideNav = () => {
           />
         </Link>
         <div className='flex-grow pl-4'>
-          <div className='mb-1 truncate font-semibold text-gray-600'>hlnam</div>
+          <div className='mb-1 truncate font-semibold text-gray-600'>{profile?.name || profile?.email}</div>
           <Link
             to={mergeUrlPaths(PATH.user.root, PATH.user.profile)}
             className='flex items-center text-gray-500 capitalize'
@@ -50,7 +51,7 @@ const UserSideNav = () => {
         <div>
           <Link
             to={mergeUrlPaths(PATH.user.root, PATH.user.profile)}
-            className='flex items-center text-black capitalize transition-colors'
+            className='hover:text-orange flex items-center text-black capitalize transition-colors'
           >
             <div className='mr-3 h-[22px] w-[22px]'>
               <img
@@ -62,24 +63,40 @@ const UserSideNav = () => {
             Tài khoản của tôi
           </Link>
           <div className='ml-5 flex flex-col gap-2 py-2 pl-4 text-sm text-gray-600'>
-            <Link
+            <NavLink
               to={mergeUrlPaths(PATH.user.root, PATH.user.profile)}
-              className='text-orange flex items-center capitalize transition-colors'
+              end
+              className={({ isActive }) =>
+                classNames(`flex items-center capitalize transition-colors`, {
+                  'text-orange': isActive,
+                  'text-gray-600': !isActive
+                })
+              }
             >
               Hồ sơ
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to={mergeUrlPaths(PATH.user.root, PATH.user.changePassword)}
-              className='flex items-center text-gray-600 capitalize transition-colors'
+              className={({ isActive }) =>
+                classNames(`flex items-center capitalize transition-colors`, {
+                  'text-orange': isActive,
+                  'hover:text-orange text-gray-600': !isActive
+                })
+              }
             >
               Đổi mật khẩu
-            </Link>
+            </NavLink>
           </div>
         </div>
 
-        <Link
+        <NavLink
           to={mergeUrlPaths(PATH.user.root, PATH.user.purchaseHistory)}
-          className='flex items-center text-black capitalize transition-colors'
+          className={({ isActive }) =>
+            classNames(`flex items-center capitalize transition-colors`, {
+              'text-orange': isActive,
+              'hover:text-orange text-black': !isActive
+            })
+          }
         >
           <div className='mr-3 h-[22px] w-[22px]'>
             <img
@@ -89,7 +106,7 @@ const UserSideNav = () => {
             />
           </div>
           Đơn mua
-        </Link>
+        </NavLink>
       </div>
     </div>
   );

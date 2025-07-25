@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
@@ -8,12 +8,13 @@ import userApi from '~/apis/user.api';
 import image from '~/assets/images';
 import Button from '~/components/Button';
 import { Input } from '~/components/Input';
+import InputFile from '~/components/InputFile';
 import { useAppContext } from '~/contexts';
 import DateSelect from '~/pages/User/components/DateSelect';
 import { UpdateUserBodySchema, type UpdateUserBody } from '~/types/user.type';
 import type { ResponseApi } from '~/types/utils.type';
 import { saveProfileToLocalStorage } from '~/utils/auth';
-import { getAvatarUrl, isAxiosUnprocessableEntityError, parseFileSize } from '~/utils/utils';
+import { getAvatarUrl, isAxiosUnprocessableEntityError } from '~/utils/utils';
 
 /**
  * Flow upload ảnh:
@@ -37,11 +38,8 @@ const UpdateProfileSchema = UpdateUserBodySchema.omit({
 
 type UpdateProfileSchemaType = z.infer<typeof UpdateProfileSchema>;
 
-const MAX_FILE_SIZE_MB = 1;
-
 const Profile = () => {
   const [file, setFile] = useState<File>();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const previewImageUrl = useMemo(() => {
     return file ? URL.createObjectURL(file) : '';
   }, [file]);
@@ -149,28 +147,8 @@ const Profile = () => {
     }
   });
 
-  const handleUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const fileFromLocal = event.target.files?.[0];
-
-    const fileSize = parseFileSize(fileFromLocal?.size || 0);
-
-    // console.log('>>> File Size:', fileSize);
-
-    if (!fileFromLocal || fileSize.value > MAX_FILE_SIZE_MB || !fileFromLocal.type.match(/image\/(jpeg|png|jpg)/)) {
-      toast.error(`Vui lòng chọn ảnh có định dạng .JPEG, .PNG và kích thước tối đa ${MAX_FILE_SIZE_MB} MB`, {
-        position: 'top-center',
-        autoClose: 1000
-      });
-      return;
-    }
-
-    setFile(fileFromLocal);
+  const handleChangeFile = (file?: File) => {
+    setFile(file);
   };
 
   return (
@@ -244,6 +222,8 @@ const Profile = () => {
             <div className='truncate pt-3 capitalize sm:w-1/5 sm:text-right'></div>
             <div className='sm:w-4/5 sm:pl-5'>
               <Button
+                disabled={updateProfileMutation.isPending || uploadAvatarMutation.isPending}
+                isLoading={updateProfileMutation.isPending || uploadAvatarMutation.isPending}
                 type='submit'
                 className='bg-orange hover:bg-orange/80 flex h-9 items-center rounded-sm px-5 text-center text-sm text-white'
               >
@@ -263,23 +243,7 @@ const Profile = () => {
                 }}
               ></img>
             </div>
-            <input
-              onClick={(e) => {
-                (e.target as HTMLInputElement).value = ''; // Reset file input value to allow re-uploading the same file
-              }}
-              onChange={onFileChange}
-              ref={fileInputRef}
-              className='hidden'
-              type='file'
-              accept='.jpg,.jpeg,.png'
-            />
-            <button
-              onClick={handleUpload}
-              type='button'
-              className='flex h-10 cursor-pointer items-center justify-center rounded-sm border bg-white px-6 text-sm text-gray-600 capitalize shadow-sm'
-            >
-              Chọn ảnh
-            </button>
+            <InputFile onChange={handleChangeFile} />
             <div className='mt-3 text-gray-400'>
               <div>Dụng lượng file tối đa 1 MB</div>
               <div>Định dạng:.JPEG, .PNG</div>
