@@ -1,28 +1,36 @@
 import { toast } from 'react-toastify';
 import axios, { AxiosError, HttpStatusCode, type AxiosInstance } from 'axios';
 
-import PATH from '~/constants/path';
 import type { ErrorResponseApi } from '~/types/utils.type';
-import type { AuthSuccessResponse } from '~/types/auth.type';
+import type { AuthSuccessResponse, RefreshTokenResponse } from '~/types/auth.type';
 import {
   clearUserInfoFromLocalStorage,
   getAccessTokenFromLocalStorage,
+  getRefreshTokenFromLocalStorage,
   saveAccessTokenToLocalStorage,
-  saveProfileToLocalStorage
+  saveProfileToLocalStorage,
+  saveRefreshTokenToLocalStorage
 } from '~/utils/auth';
 import config from '~/constants/config';
+import { URL } from '~/apis/auth.api';
+import { isAxiosUnauthorizedError, isExpiredTokenError } from '~/utils/utils';
 
 class Http {
   instance: AxiosInstance;
   private accessToken: string = '';
+  private refreshToken: string = '';
+  private refreshTokenRequest: Promise<string> | null = null;
 
   constructor() {
     this.accessToken = getAccessTokenFromLocalStorage() || '';
+    this.refreshToken = getRefreshTokenFromLocalStorage() || '';
     this.instance = axios.create({
       baseURL: config.baseUrl,
       timeout: 10000, // 10 seconds timeout
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'expire-access-token': 10, // 10s
+        'expire-refresh-token': 60 * 60 // 1 hour
       }
     });
 
@@ -45,21 +53,49 @@ class Http {
       (response) => {
         // Check if the response has an access token in response body
         const url = response.config.url || '';
-        if ([`/${PATH.login}`, `/${PATH.register}`].includes(url)) {
-          this.accessToken = (response.data as AuthSuccessResponse).data.access_token || '';
-          const profile = (response.data as AuthSuccessResponse).data.user;
+        if ([URL.login, URL.register].includes(url)) {
+          const data = response.data as AuthSuccessResponse;
+          this.accessToken = data.data.access_token || '';
+          this.refreshToken = data.data.refresh_token || '';
+          const profile = data.data.user;
+
           // Save access token to local storage
           saveAccessTokenToLocalStorage(this.accessToken);
+          saveRefreshTokenToLocalStorage(this.refreshToken);
           saveProfileToLocalStorage(profile);
-        } else if (url === `/${PATH.logout}`) {
+        } else if (url === URL.logout) {
           // Clear access token from local storage on logout
           this.accessToken = '';
+          this.refreshToken = '';
           clearUserInfoFromLocalStorage();
         }
         return response;
       },
       (error: AxiosError) => {
         if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
+          let url = error?.config?.url || '';
+          url = url.startsWith('/') ? url : `/${url}`;
+
+          // Xử lý token hết hạn
+          if (isAxiosUnauthorizedError(error) && isExpiredTokenError(error) && url !== URL.refreshAccessToken) {
+            this.refreshTokenRequest =
+              this.refreshTokenRequest ||
+              this.handleRefreshToken().finally(() => {
+                this.refreshTokenRequest = null;
+              });
+
+            return this.refreshTokenRequest
+              .then((newToken) => this.retryRequestWithNewToken(error, newToken))
+              .catch((refreshError) => {
+                console.error('Token refresh failed:', refreshError);
+                clearUserInfoFromLocalStorage();
+                this.accessToken = '';
+                this.refreshToken = '';
+                throw refreshError;
+              });
+          }
+
+          // Xử lý lỗi không phải token hết hạn
           const errorResponse = error.response?.data as ErrorResponseApi<{
             message?: string;
             name?: string;
@@ -79,20 +115,50 @@ class Http {
             theme: 'colored'
           });
 
-          if (error.response?.status === HttpStatusCode.Unauthorized) {
-            // Clear user info if unauthorized
-            clearUserInfoFromLocalStorage();
-            this.accessToken = '';
-            // Optionally, redirect to login page
-            // setTimeout(() => {
-            //   window.location.href = `/${PATH.login}`;
-            // }, 1000);
-          }
+          // Clear user info if unauthorized
+          clearUserInfoFromLocalStorage();
+          this.accessToken = '';
+          this.refreshToken = '';
+          // Optionally, redirect to login page
+          // setTimeout(() => {
+          //   window.location.href = `/${PATH.login}`;
+          // }, 1000);
         }
         return Promise.reject(error);
       }
     );
   }
+
+  private handleRefreshToken = async () => {
+    return this.instance
+      .post<RefreshTokenResponse>(URL.refreshAccessToken, {
+        refresh_token: this.refreshToken
+      })
+      .then((res) => {
+        const data = res.data;
+        this.accessToken = data.data.access_token || '';
+        saveAccessTokenToLocalStorage(this.accessToken);
+        return this.accessToken;
+      })
+      .catch((error) => {
+        clearUserInfoFromLocalStorage();
+        this.accessToken = '';
+        this.refreshToken = '';
+        throw error;
+      });
+  };
+
+  private retryRequestWithNewToken = (error: AxiosError, newAccessToken: string) => {
+    if (error.response?.config?.headers) {
+      console.log('Retrying request with new access token:', newAccessToken);
+      error.response.config.headers['Authorization'] = newAccessToken;
+      error.response.config.headers.authorization = newAccessToken;
+      this.accessToken = newAccessToken;
+      saveAccessTokenToLocalStorage(newAccessToken);
+      return this.instance(error.response.config);
+    }
+    throw error;
+  };
 }
 
 const http = new Http().instance;

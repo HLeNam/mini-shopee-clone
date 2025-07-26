@@ -1,5 +1,6 @@
 import z from 'zod';
-import { omit } from 'lodash';
+// import { omit } from 'lodash';
+import omit from 'lodash/omit';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';

@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { createElement, lazy } from 'react';
 import PATH from '~/constants/path';
 import MainLayout from '~/layouts/MainLayout';
 import type { AppRouteObject } from '~/types/route.type';
@@ -11,6 +11,7 @@ const publicRoutes: AppRouteObject[] = [
   {
     path: '/',
     Component: MainLayout,
+    errorElement: createElement(lazy(() => import('~/components/ErrorPage'))),
     children: [
       {
         path: PATH.home,

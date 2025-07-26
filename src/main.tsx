@@ -9,13 +9,16 @@ import { ToastContainer } from 'react-toastify';
 import router from '~/routes';
 import { AppProvider } from '~/contexts';
 import { queryClient } from '~/constants/queryClient';
+import ErrorBoundary from '~/components/ErrorBoundary';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
       <AppProvider>
-        <RouterProvider router={router} />
+        <ErrorBoundary>
+          <RouterProvider router={router} />
+        </ErrorBoundary>
       </AppProvider>
       <ToastContainer />
     </QueryClientProvider>

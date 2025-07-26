@@ -16,3 +16,7 @@ export type AuthSuccessResponse = SuccessResponseApi<{
   expires_refresh_token: number;
   user: AuthUser;
 }>;
+
+export type RefreshTokenResponse = SuccessResponseApi<{
+  access_token: string;
+}>;

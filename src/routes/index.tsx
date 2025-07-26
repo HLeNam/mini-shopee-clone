@@ -4,6 +4,10 @@ import type { AppRouteObject } from '~/types/route.type';
 import guestRoutes from '~/routes/guest.routes';
 import privateRoutes from '~/routes/private.routes';
 import publicRoutes from '~/routes/public.routes';
+import { lazy } from 'react';
+import ErrorPage from '~/components/ErrorPage';
+
+const NotFound = lazy(() => import('~/pages/NotFound'));
 
 const routes: AppRouteObject[] = [
   ...publicRoutes,
@@ -11,8 +15,8 @@ const routes: AppRouteObject[] = [
   ...privateRoutes,
   {
     path: '*',
-    Component: () => <div>404 Not Found</div>,
-    ErrorBoundary: () => <div>Something went wrong</div>
+    Component: NotFound,
+    errorElement: <ErrorPage />
   }
 ];
 

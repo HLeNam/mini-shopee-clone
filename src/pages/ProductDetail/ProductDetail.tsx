@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
@@ -32,7 +32,8 @@ const ProductDetail = () => {
 
   const { data: productDetailData } = useQuery({
     queryKey: ['product', id],
-    queryFn: () => productApi.getProductDetail(id as string)
+    queryFn: () => productApi.getProductDetail(id as string),
+    enabled: !!id
   });
 
   const [currentIndexImage, setCurrentIndexImage] = useState([0, 5]);
@@ -44,7 +45,7 @@ const ProductDetail = () => {
   const product = productDetailData?.data.data;
 
   const currentImages = useMemo(() => {
-    return product?.images.slice(...currentIndexImage) || [];
+    return product?.images?.slice(...currentIndexImage) || [];
   }, [product, currentIndexImage]);
 
   const urlQueryConfig = useQueryConfig();
@@ -58,7 +59,7 @@ const ProductDetail = () => {
     queryKey: ['products', queryConfig],
     queryFn: () => productApi.getProducts(queryConfig as ProductListConfig),
     placeholderData: keepPreviousData,
-    enabled: !!product?.category?._id,
+    enabled: !!product?.category?._id && !!id,
     staleTime: 3 * 60 * 1000 // 3 minutes
   });
 
@@ -190,6 +191,10 @@ const ProductDetail = () => {
     }
   };
 
+  if (!id) {
+    return <Navigate to={mergeUrlPaths(PATH.notFound)} replace />; // Redirect if no ID is found
+  }
+
   if (!product) return null; // Handle case where product is not found
 
   return (
@@ -206,7 +211,7 @@ const ProductDetail = () => {
               >
                 <img
                   className='absolute top-0 left-0 h-full w-full bg-white object-contain'
-                  src={activeImage || product.images[0]}
+                  src={activeImage || product.images?.[0]}
                   alt={product.name}
                   ref={imageRef}
                 />
@@ -266,7 +271,7 @@ const ProductDetail = () => {
               <h1 className='text-xl font-medium uppercase'>{product.name}</h1>
               <div className='mt-8 flex items-center'>
                 <div className='flex items-center'>
-                  <span className='border-b-orange text-orange mr-1 border-b'>{product.rating.toFixed(1)}</span>
+                  <span className='border-b-orange text-orange mr-1 border-b'>{product.rating?.toFixed(1)}</span>
                   <ProductRating
                     rating={product.rating}
                     activeClassName='fill-orange stroke-orange text-orange h-4 w-4'

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import _ from 'lodash';
+// import { omit } from 'lodash';
+import omit from 'lodash/omit';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -65,7 +66,7 @@ const Register = () => {
     // Handle registration logic here
     console.log('Register data:', data);
     try {
-      const body = _.omit(data, 'confirm_password');
+      const body = omit(data, 'confirm_password');
       const response = await registerAccountMutation.mutateAsync(body);
 
       const dataResponse = response.data;

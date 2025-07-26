@@ -18,7 +18,9 @@ const PATH = {
     profile: 'profile',
     changePassword: 'change-password',
     purchaseHistory: 'purchase-history'
-  }
+  },
+
+  notFound: 'not-found/not-found'
 } as const;
 
 export default PATH;

@@ -1,6 +1,7 @@
 import axios, { AxiosError, HttpStatusCode } from 'axios';
 import image from '~/assets/images';
 import config from '~/constants/config';
+import type { ResponseApi } from '~/types/utils.type';
 
 // Type predicates to check if an error is an AxiosError
 export function isAxiosError<T>(error: unknown): error is AxiosError<T> {
@@ -9,6 +10,21 @@ export function isAxiosError<T>(error: unknown): error is AxiosError<T> {
 
 export function isAxiosUnprocessableEntityError<T>(error: unknown): error is AxiosError<T> {
   return isAxiosError(error) && error.response?.status === HttpStatusCode.UnprocessableEntity;
+}
+
+export function isAxiosUnauthorizedError<T>(error: unknown): error is AxiosError<T> {
+  return isAxiosError(error) && error.response?.status === HttpStatusCode.Unauthorized;
+}
+
+export function isExpiredTokenError<T>(error: unknown): error is AxiosError<T> {
+  return (
+    isAxiosUnauthorizedError<
+      ResponseApi<{
+        message?: string;
+        name?: string;
+      }>
+    >(error) && error.response?.data.data?.name === 'EXPIRED_TOKEN'
+  );
 }
 
 export function formatCurrency(currency: number) {

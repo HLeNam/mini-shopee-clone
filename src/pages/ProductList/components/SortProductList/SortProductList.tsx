@@ -1,4 +1,5 @@
-import { omit } from 'lodash';
+// import { omit } from 'lodash'; cách import này sẽ gây hiện tượng tree-shaking không hiệu quả
+import omit from 'lodash/omit';
 import classNames from 'classnames';
 import { createSearchParams, Link, useNavigate } from 'react-router-dom';
 
